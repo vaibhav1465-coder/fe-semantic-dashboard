@@ -1,0 +1,10 @@
+node_modules/
+.vercel/
+.env
+.env.local
+.env.production
+.env.development
+*.log
+*.zip
+data/runtime-cache.local.json
+.DS_Store

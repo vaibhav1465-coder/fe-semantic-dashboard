@@ -1,0 +1,10 @@
+{
+  "generated_at": "2026-07-15T00:00:00.000Z",
+  "batch_id": "preview-20260715",
+  "total": 16,
+  "approved": 11,
+  "rejected": 5,
+  "warnings": [
+    "Publication dates are not present in the preview fallback dataset. Run npm run refresh with the real FE CSV to populate them."
+  ]
+}

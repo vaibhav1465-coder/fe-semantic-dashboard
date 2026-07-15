@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FE Internal Links — Editorial Dashboard</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Inter, Arial, sans-serif;
+  background: #0f172a;
+  color: #e5e7eb;
+}
+.header {
+  padding: 30px;
+  background: linear-gradient(135deg, #111827, #1e3a8a);
+  border-bottom: 1px solid #334155;
+}
+.header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.header h1 { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.3px; }
+.header p { margin: 8px 0 0; color: #94a3b8; font-size: 14px; }
+.header-badge {
+  background: #1e40af;
+  border: 1px solid #3b82f6;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 12px;
+  color: #bfdbfe;
+  white-space: nowrap;
+}
+
+.provenance-panel {
+  margin-top:18px;
+  background:rgba(2,6,23,.55);
+  border:1px solid rgba(96,165,250,.35);
+  border-radius:12px;
+  padding:12px 14px;
+}
+.provenance-top {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-bottom:9px;
+}
+.provenance-title {
+  color:#dbeafe;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.09em;
+  font-weight:800;
+}
+.provenance-message { color:#94a3b8; font-size:11px; line-height:1.4; }
+.provenance-chips { display:flex; flex-wrap:wrap; gap:8px; }
+.provenance-chip {
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid #334155;
+  background:#111827;
+  color:#cbd5e1;
+  font-size:11px;
+  font-weight:700;
+  max-width:100%;
+}
+.provenance-chip::before {
+  content:'';
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:#64748b;
+  flex:0 0 auto;
+}
+.provenance-chip.live { border-color:#047857; background:#052e2b; color:#6ee7b7; }
+.provenance-chip.live::before { background:#34d399; box-shadow:0 0 0 3px rgba(52,211,153,.12); }
+.provenance-chip.cache { border-color:#1d4ed8; background:#172554; color:#bfdbfe; }
+.provenance-chip.cache::before { background:#60a5fa; }
+.provenance-chip.fallback, .provenance-chip.last-crawl, .provenance-chip.stale-cache { border-color:#92400e; background:#451a03; color:#fcd34d; }
+.provenance-chip.fallback::before, .provenance-chip.last-crawl::before, .provenance-chip.stale-cache::before { background:#f59e0b; }
+.provenance-chip.failed { border-color:#991b1b; background:#450a0a; color:#fca5a5; }
+.provenance-chip.failed::before { background:#ef4444; }
+.provenance-chip.configured, .provenance-chip.ready { border-color:#475569; background:#111827; color:#cbd5e1; }
+.provenance-detail { color:#64748b; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:330px; }
+
+.container { padding: 24px; }
+.workflow-panel {
+  margin-bottom: 20px;
+  padding: 20px 24px;
+  border: 1px solid #334155;
+  border-radius: 16px;
+  background: #111827;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.28);
+}
+.workflow-panel h2 { margin: 0 0 16px; color: #93c5fd; font-size: 21px; letter-spacing: -0.2px; }
+.workflow-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.workflow-step {
+  background: #020617;
+  border: 1px solid #334155;
+  border-radius: 14px;
+  padding: 16px 18px;
+  min-height: 225px;
+}
+.workflow-step-badge {
+  display: inline-block;
+  background: linear-gradient(135deg,#2563eb,#06b6d4);
+  color: #fff;
+  font-weight: 800;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+.workflow-step h3 { margin: 0 0 10px; color: #fff; font-size: 17px; line-height: 1.2; }
+.workflow-step p, .workflow-step li { color: #cbd5e1; font-size: 13px; line-height: 1.45; }
+.workflow-step ul { margin: 0; padding-left: 18px; }
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.card {
+  background: #111827;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  transition: border-color .2s;
+}
+.card:hover { border-color: #475569; }
+.card h3 { margin:0; font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:.08em; font-weight:600; }
+.card .num { font-size:24px; font-weight:800; margin-top:6px; line-height:1; }
+.card .num.green { color:#34d399; } .card .num.red { color:#f87171; }
+.card .num.blue { color:#60a5fa; } .card .num.gold { color:#fbbf24; }
+.card .sub { font-size:11px; color:#475569; margin-top:4px; }
+
+.source-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:18px; }
+.source-card {
+  background:#111827; border:1px solid #1e293b; border-radius:10px;
+  padding:10px 12px; display:flex; align-items:center; gap:10px;
+}
+.source-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.source-dot.s0 { background:#3b82f6; } .source-dot.s1 { background:#f59e0b; }
+.source-dot.s2 { background:#10b981; } .source-dot.s3 { background:#a855f7; }
+.source-card-info { flex:1; min-width:0; }
+.source-card-label {
+  font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:.07em;
+  margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.source-card-title { font-size:12px; color:#cbd5e1; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.source-card-count { font-size:16px; font-weight:800; color:#e2e8f0; flex-shrink:0; }
+
+.filters { display:grid; grid-template-columns:2fr 1fr 1fr 1fr 1fr; gap:10px; margin-bottom:16px; }
+input, select {
+  padding:11px 14px; border-radius:10px; border:1px solid #334155;
+  background:#020617; color:#e5e7eb; font-size:13px; outline:none; transition:border-color .15s;
+}
+input:focus, select:focus { border-color:#3b82f6; }
+input::placeholder { color:#475569; }
+
+.toolbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; gap:12px; flex-wrap:wrap; }
+.result-count { font-size:13px; color:#64748b; }
+.result-count span { color:#e2e8f0; font-weight:600; }
+.download-btn {
+  background:#2563eb; color:white; border:none; padding:10px 20px; border-radius:10px;
+  cursor:pointer; font-weight:700; font-size:13px; letter-spacing:.02em; transition:background .15s;
+}
+.download-btn:hover { background:#1d4ed8; }
+
+.table-wrap {
+  overflow:auto; max-height:65vh; border-radius:14px; border:1px solid #334155; background:#020617;
+}
+table { width:100%; border-collapse:collapse; min-width:1940px; }
+th {
+  position:sticky; top:0; background:#0f172a; color:#94a3b8; padding:13px 14px;
+  text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.08em;
+  font-weight:600; z-index:2; border-bottom:1px solid #334155; white-space:nowrap;
+  cursor:pointer; user-select:none;
+}
+th:hover { color:#e2e8f0; } th.sorted { color:#60a5fa; }
+td { padding:12px 14px; border-bottom:1px solid #1e293b; font-size:13px; vertical-align:top; color:#cbd5e1; }
+tr.data-row { cursor:pointer; }
+tr.data-row:hover td { background:#0f172a; }
+tr.expanded-parent td { background:#0f1e35; }
+
+.expanded-detail { background:#0a1628; border-top:1px solid #1e3a5f; border-bottom:2px solid #2563eb; }
+.expanded-detail td { padding:16px 20px; background:#0a1628; }
+.exp-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; }
+.exp-label { font-size:10px; text-transform:uppercase; letter-spacing:.1em; color:#3b82f6; font-weight:600; margin-bottom:6px; }
+.exp-value { font-size:13px; color:#e2e8f0; line-height:1.6; }
+.exp-anchor {
+  background:#1e3a8a; border:1px solid #3b82f6; color:#bfdbfe; padding:4px 12px;
+  border-radius:6px; font-family:monospace; font-size:12px; display:inline-block; margin-top:4px;
+}
+.exp-url { font-size:11px; color:#3b82f6; word-break:break-all; margin-top:4px; display:block; }
+
+.badge { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:999px; font-weight:700; font-size:11px; letter-spacing:.03em; white-space:nowrap; }
+.badge::before { content:''; width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+.badge-approved { background:#064e3b; color:#6ee7b7; } .badge-approved::before { background:#34d399; }
+.badge-rejected { background:#7f1d1d; color:#fca5a5; } .badge-rejected::before { background:#ef4444; }
+
+.src-tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; margin-bottom:4px; }
+.tag-s0 { background:#1e3a8a; color:#93c5fd; } .tag-s1 { background:#78350f; color:#fcd34d; }
+.tag-s2 { background:#064e3b; color:#6ee7b7; } .tag-s3 { background:#581c87; color:#d8b4fe; }
+
+.score-wrap { display:flex; align-items:center; gap:8px; }
+.score-num { font-weight:800; font-size:16px; min-width:28px; }
+.score-bar-bg { flex:1; height:4px; background:#1e293b; border-radius:99px; min-width:50px; }
+.score-bar-fill { height:100%; border-radius:99px; }
+.fill-high { background:#34d399; } .fill-mid { background:#fbbf24; } .fill-low { background:#475569; }
+.num-high { color:#34d399; } .num-mid { color:#fbbf24; } .num-low { color:#64748b; }
+
+a { color:#60a5fa; text-decoration:none; font-size:11px; }
+a:hover { text-decoration:underline; }
+.title-text {
+  color:#e2e8f0; font-weight:500; line-height:1.4; display:-webkit-box;
+  -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
+.entity-pill {
+  display:inline-block; padding:3px 8px; border-radius:999px; background:#1e293b;
+  border:1px solid #334155; color:#bfdbfe; font-size:11px; font-weight:600; margin:2px 3px 2px 0;
+}
+.sentiment-box { font-size:12px; line-height:1.55; min-width:150px; }
+.sentiment-positive { color:#34d399; } .sentiment-negative { color:#f87171; }
+.sentiment-neutral { color:#fbbf24; } .sentiment-muted { color:#64748b; }
+.sentiment-score { color:#e2e8f0; font-weight:800; }
+.sentiment-mag { color:#94a3b8; font-size:11px; }
+
+.reason-preview {
+  max-width:360px; line-height:1.45; display:-webkit-box; -webkit-line-clamp:2;
+  -webkit-box-orient:vertical; overflow:hidden;
+}
+.reason-preview.open { display:block; }
+.read-more {
+  border:0; background:transparent; color:#60a5fa; padding:4px 0 0; cursor:pointer;
+  font-size:11px; font-weight:700;
+}
+
+.action-row { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+.action-btn {
+  border:1px solid #334155; background:#111827; color:#cbd5e1; padding:7px 11px;
+  border-radius:7px; cursor:pointer; font-size:11px; font-weight:700;
+}
+.action-btn:hover { border-color:#60a5fa; }
+.action-btn.used.active { background:#064e3b; border-color:#10b981; color:#6ee7b7; }
+.action-btn.ignore.active { background:#78350f; border-color:#f59e0b; color:#fcd34d; }
+.action-btn.reject.active { background:#7f1d1d; border-color:#ef4444; color:#fca5a5; }
+.validation-ok { color:#6ee7b7; font-weight:700; }
+.validation-pending { color:#fbbf24; font-weight:700; }
+
+.inline-detail {
+  margin-top:8px;
+  padding-top:7px;
+  border-top:1px dashed #334155;
+  font-size:11px;
+  line-height:1.45;
+}
+.inline-detail-label {
+  color:#64748b;
+  text-transform:uppercase;
+  letter-spacing:.07em;
+  font-size:9px;
+  font-weight:700;
+  display:block;
+  margin-bottom:3px;
+}
+.inline-anchor {
+  color:#bfdbfe;
+  font-family:monospace;
+  font-size:11px;
+  background:#172554;
+  border:1px solid #1d4ed8;
+  border-radius:5px;
+  padding:3px 6px;
+  display:inline-block;
+}
+.status-stack {
+  margin-top:8px;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+.mini-status {
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  width:max-content;
+  max-width:100%;
+  border-radius:999px;
+  padding:3px 7px;
+  font-size:10px;
+  font-weight:700;
+  border:1px solid #334155;
+  background:#111827;
+  color:#cbd5e1;
+  white-space:nowrap;
+}
+.mini-status::before {
+  content:'';
+  width:5px;
+  height:5px;
+  border-radius:50%;
+  background:#64748b;
+}
+.mini-status.ok { color:#6ee7b7; border-color:#065f46; background:#052e2b; }
+.mini-status.ok::before { background:#34d399; }
+.mini-status.pending { color:#fcd34d; border-color:#92400e; background:#451a03; }
+.mini-status.pending::before { background:#f59e0b; }
+.mini-status.info { color:#93c5fd; border-color:#1e40af; background:#172554; }
+.mini-status.info::before { background:#60a5fa; }
+
+
+
+.header-actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.header-link {
+  display:inline-block; background:#111827; border:1px solid #60a5fa; color:#dbeafe;
+  border-radius:8px; padding:8px 12px; font-size:12px; font-weight:700; text-decoration:none;
+}
+.header-link:hover { background:#172554; text-decoration:none; }
+.sentiment-reason {
+  margin-top:8px; padding-top:7px; border-top:1px dashed #334155;
+  color:#cbd5e1; font-size:11px; line-height:1.45; max-width:235px;
+}
+.sentiment-reason strong { color:#93c5fd; }
+.sentiment-evidence { margin:7px 0 0; padding-left:15px; color:#94a3b8; }
+.sentiment-evidence li { margin:4px 0; }
+.sentiment-method {
+  margin-top:6px; color:#64748b; font-size:10px; line-height:1.35;
+}
+
+.pagination { display:flex; align-items:center; justify-content:center; gap:6px; padding:18px 0 6px; flex-wrap:wrap; }
+.load-more-btn {
+  border:1px solid #2563eb; background:#2563eb; color:white; font-size:13px;
+  padding:10px 22px; border-radius:9px; cursor:pointer; font-weight:700; transition:all .15s;
+}
+.load-more-btn:hover { background:#1d4ed8; border-color:#60a5fa; }
+.load-more-btn:disabled { opacity:.4; cursor:default; }
+
+.footer {
+  background:#020617; border-top:1px solid #1e293b; text-align:center; padding:16px;
+  font-size:11px; color:#334155; letter-spacing:.06em; text-transform:uppercase;
+}
+.empty-row td { text-align:center; padding:60px; color:#475569; font-size:15px; }
+
+@media (max-width:1100px) {
+  .cards { grid-template-columns:repeat(3,1fr); }
+  .workflow-grid { grid-template-columns:repeat(2,1fr); }
+  .source-strip { grid-template-columns:repeat(2,1fr); }
+  .filters { grid-template-columns:1fr 1fr; }
+  .exp-grid { grid-template-columns:1fr 1fr; }
+}
+@media (max-width:700px) {
+  .cards { grid-template-columns:repeat(2,1fr); }
+  .workflow-grid, .source-strip, .filters, .exp-grid { grid-template-columns:1fr; }
+  .container { padding:14px; }
+  .workflow-step { min-height:auto; }
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-top">
+    <div>
+      <h1>&#128279; Internal Linking Intelligence</h1>
+      <p>Financial Express &mdash; Semantic validation with editorial context, entity overlap &amp; anchor recommendations &mdash; 4 source articles &middot; 500 pairs evaluated</p>
+    </div>
+    <div class="header-actions">
+      <div class="header-badge" id="run-date">Preview</div>
+    </div>
+  </div>
+  <div class="provenance-panel" id="provenancePanel" data-fallback-chain="WordPress REST API → RSS Feed → Fallback Cache → Last Crawl" aria-live="polite">
+    <div class="provenance-top">
+      <span class="provenance-title">Live Data Provenance</span>
+      <span class="provenance-message" id="provenanceMessage">Checking WordPress REST, RSS Feed, Google NLP and cache fallback…</span>
+    </div>
+    <div class="provenance-chips">
+      <span class="provenance-chip last-crawl" id="articleSourceChip">Articles: Last Crawl</span>
+      <span class="provenance-chip cache" id="entitySourceChip">Entities: Google NLP Cache</span>
+      <span class="provenance-chip cache" id="sentimentSourceChip">Sentiment: Google NLP Cache</span>
+      <span class="provenance-chip last-crawl" id="lastCrawlChip">Last Crawl: Preview dataset</span>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="workflow-panel">
+    <h2>End-to-End Workflow</h2>
+    <div class="workflow-grid">
+      <div class="workflow-step">
+        <span class="workflow-step-badge">Step 1</span>
+        <h3>Screaming Frog Crawl + Content Export</h3>
+        <ul>
+          <li>Crawl selected Financial Express article URLs.</li>
+          <li>Filter article pages using FE-specific include/exclude regex rules.</li>
+          <li>Export URLs and metadata for Python-based content extraction.</li>
+          <li>Keep the crawl clean so weak/non-article pages do not enter validation.</li>
+        </ul>
+      </div>
+      <div class="workflow-step">
+        <span class="workflow-step-badge">Step 2</span>
+        <h3>Google Cloud NLP Entity + Sentiment Extraction</h3>
+        <p>Google NLP extracts entities, topical signals, salience, article-level sentiment score, sentiment name, and magnitude for each Financial Express article.</p>
+      </div>
+      <div class="workflow-step">
+        <span class="workflow-step-badge">Step 3</span>
+        <h3>Claude Sonnet 4.6 Editorial Validation</h3>
+        <p>Claude validates candidate links using source/target context, Google NLP entities, editorial controls, and the strict rule that keyword-only or entity-only matches must be rejected.</p>
+      </div>
+      <div class="workflow-step">
+        <span class="workflow-step-badge">Step 4</span>
+        <h3>Vercel Editorial Dashboard</h3>
+        <p>Final validated recommendations are deployed into this dashboard so SEO and editorial teams can review links, filter recommendations, check reasons, and implement internal links.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="cards">
+    <div class="card"><h3>Total Pairs</h3><div class="num">500</div><div class="sub">evaluated</div></div>
+    <div class="card"><h3>Approved</h3><div class="num green">74</div><div class="sub">links</div></div>
+    <div class="card"><h3>Rejected</h3><div class="num red">426</div><div class="sub">links</div></div>
+    <div class="card"><h3>Approval Rate</h3><div class="num blue">14.8%</div><div class="sub">quality threshold</div></div>
+    <div class="card"><h3>Avg Score</h3><div class="num gold">84</div><div class="sub">approved links</div></div>
+    <div class="card"><h3>Sources</h3><div class="num">4</div><div class="sub">articles</div></div>
+  </div>
+
+  <div class="source-strip" id="sourceStrip"></div>
+
+  <div class="filters">
+    <input type="text" id="searchInput" placeholder="Search titles, Google NLP entities, reasons&hellip;">
+    <select id="statusFilter">
+      <option value="">All Statuses</option>
+      <option value="Approved">Approved</option>
+      <option value="Rejected">Rejected</option>
+    </select>
+    <select id="sourceFilter">
+      <option value="">All Source Articles</option>
+      <option value="Navi Mumbai Airport">Navi Mumbai Airport</option>
+      <option value="AI Chatbots to Machines">AI Chatbots to Machines</option>
+      <option value="Govt Silver Import Rules">Govt Silver Import Rules</option>
+      <option value="India AI Economy (Shah)">India AI Economy (Shah)</option>
+    </select>
+    <select id="scoreFilter">
+      <option value="">All Confidence Scores</option>
+      <option value="90">90+ Very Strong</option>
+      <option value="80">80&ndash;89 Strong</option>
+      <option value="75">75&ndash;79 Good</option>
+      <option value="0">Below 75 Weak</option>
+    </select>
+    <select id="sortSelect">
+      <option value="Confidence Score">Sort: Score</option>
+      <option value="Status">Sort: Status</option>
+      <option value="Source Title">Sort: Source</option>
+      <option value="Target Title">Sort: Target</option>
+    </select>
+  </div>
+
+  <div class="toolbar">
+    <div class="result-count">Showing <span id="resultCountNum">0</span> preview records &mdash; anchor-text recommendation, API and validation status are visible in each row</div>
+    <button class="download-btn" onclick="downloadCSV()">&#8595; Download Filtered CSV</button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:100px">Score</th>
+          <th style="width:110px">Status</th>
+          <th style="width:280px">Source Article</th>
+          <th style="width:280px">Target Article</th>
+          <th style="width:240px">Anchor Text Recommendation</th>
+          <th style="width:240px">Google NLP Entities</th>
+          <th style="width:250px">Sentiment + Reason</th>
+          <th>Reason</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+  <div id="loadMoreWrap" class="pagination"></div>
+</div>
+
+<div class="footer">
+  Financial Express &mdash; Internal Link Validation &middot; 500 pairs &middot; 4 source articles &middot; Semantic + Editorial Analysis
+</div>
+
+<script>
+const FALLBACK_DATA = [{"Source URL":"https://www.financialexpress.com/business/airlines-aviation/navi-mumbai-airports-next-challenge-moves-beyond-runway-capacity/4242292/","Source Title":"Navi Mumbai airport’s next challenge moves beyond runway capacity","Target URL":"https://www.financialexpress.com/business/airlines-aviation-nagpur-airport-to-be-modernised-new-terminal-runway-expansion-cargo-boost-all-you-need-to-know-4240223/","Target Title":"Nagpur Airport to be modernised: New terminal, runway expansion, cargo boost – All you need to know","Status":"Approved","Confidence Score":90,"Reason":"Both articles cover airport capacity expansion in India — Nagpur modernisation is a directly comparable infrastructure story for readers following NMIA growth.","Anchor Text Suggestion":"Nagpur airport expansion plans","Link Placement Suggestion":"In the section on India’s airport infrastructure push","Source Tag":"Navi Mumbai Airport","Entities":["Navi Mumbai International Airport","Nagpur Airport","airport infrastructure"],"Source Sentiment":{"score":0,"name":"Neutral","magnitude":5.6,"reasoning":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 5.600 shows very strong emotional content.","score_interpretation":"The score 0.000 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 5.600 reflects very strong emotional content. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}},"Target Sentiment":null,"id":"fe-preview-001","source_date":null,"target_date":null,"generated_at":"2026-07-15T00:00:00.000Z","batch_id":"preview-20260715","nlp_status":"cached","metadata_status":"pending","source_reachable":null,"target_reachable":null,"Source Sentiment Reason":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 5.600 shows very strong emotional content.","score_interpretation":"The score 0.000 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 5.600 reflects very strong emotional content. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}},{"Source URL":"https://www.financialexpress.com/business/airlines-aviation/navi-mumbai-airports-next-challenge-moves-beyond-runway-capacity/4242292/","Source Title":"Navi Mumbai airport’s next challenge moves beyond runway capacity","Target URL":"https://www.financialexpress.com/business/airlines-aviation-big-boost-for-nagpur-airport-revamp-takes-off-centre-clears-gmr-led-expansion-4240440/","Target Title":"Big boost for Nagpur: Airport revamp takes off; Centre clears GMR-led expansion","Status":"Approved","Confidence Score":88,"Reason":"Cabinet approval for Nagpur airport’s GMR-led expansion is a directly comparable aviation infrastructure development story.","Anchor Text Suggestion":"Centre clears Nagpur airport redevelopment","Link Placement Suggestion":"In the section discussing India’s broader airport expansion wave","Source Tag":"Navi Mumbai Airport","Entities":["Nagpur Airport","GMR","airport expansion"],"Source Sentiment":{"score":0,"name":"Neutral","magnitude":5.6,"reasoning":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 5.600 shows very strong emotional content.","score_interpretation":"The score 0.000 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 5.600 reflects very strong emotional content. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}},"Target Sentiment":null,"id":"fe-preview-002","source_date":null,"target_date":null,"generated_at":"2026-07-15T00:00:00.000Z","batch_id":"preview-20260715","nlp_status":"cached","metadata_status":"pending","source_reachable":null,"target_reachable":null,"Source Sentiment Reason":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 5.600 shows very strong emotional content.","score_interpretation":"The score 0.000 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 5.600 reflects very strong emotional content. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}},{"Source URL":"https://www.financialexpress.com/business/airlines-aviation/navi-mumbai-airports-next-challenge-moves-beyond-runway-capacity/4242292/","Source Title":"Navi Mumbai airport’s next challenge moves beyond runway capacity","Target URL":"https://www.financialexpress.com/business/airlines-aviation-indigo-warns-of-flight-delays-amid-rain-thunderstorm-alert-in-delhi-4240096/","Target Title":"IndiGo warns of flight delays amid rain, thunderstorm alert in Delhi","Status":"Rejected","Confidence Score":52,"Reason":"Shared entities are aviation terms, but the target is a weather-delay advisory for Delhi airport and is unrelated to NMIA’s connectivity and growth story.","Anchor Text Suggestion":"","Link Placement Suggestion":"","Source Tag":"Navi Mumbai Airport","Entities":["IndiGo","Delhi airport","aviation"],"Source Sentiment":{"score":0,"name":"Neutral","magnitude":5.6,"reasoning":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 5.600 shows very strong emotional content.","score_interpretation":"The score 0.000 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 5.600 reflects very strong emotional content. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}},"Target Sentiment":null,"id":"fe-preview-003","source_date":null,"target_date":null,"generated_at":"2026-07-15T00:00:00.000Z","batch_id":"preview-20260715","nlp_status":"cached","metadata_status":"pending","source_reachable":null,"target_reachable":null,"Source Sentiment Reason":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 5.600 shows very strong emotional content.","score_interpretation":"The score 0.000 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 5.600 reflects very strong emotional content. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}},{"Source URL":"https://www.financialexpress.com/business/airlines-aviation/navi-mumbai-airports-next-challenge-moves-beyond-runway-capacity/4242292/","Source Title":"Navi Mumbai airport’s next challenge moves beyond runway capacity","Target URL":"https://www.financialexpress.com/shorts/economy/onion-glut-drives-prices-down-4242270/","Target Title":"Onion glut drives prices down","Status":"Rejected","Confidence Score":30,"Reason":"No editorial connection. The source is about aviation infrastructure at NMIA, while the target covers onion prices. Shared entities are generic and do not establish topical overlap.","Anchor Text Suggestion":"","Link Placement Suggestion":"","Source Tag":"Navi Mumbai Airport","Entities":["India","prices"],"Source Sentiment":{"score":0,"name":"Neutral","magnitude":5.6,"reasoning":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 5.600 shows very strong emotional content.","score_interpretation":"The score 0.000 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 5.600 reflects very strong emotional content. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}},"Target Sentiment":{"score":-0.2,"name":"Neutral","magnitude":5.4,"reasoning":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 5.400 shows very strong emotional content.","score_interpretation":"The score -0.200 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 5.400 reflects very strong emotional content. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}},"id":"fe-preview-004","source_date":null,"target_date":null,"generated_at":"2026-07-15T00:00:00.000Z","batch_id":"preview-20260715","nlp_status":"cached","metadata_status":"pending","source_reachable":null,"target_reachable":null,"Source Sentiment Reason":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 5.600 shows very strong emotional content.","score_interpretation":"The score 0.000 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 5.600 reflects very strong emotional content. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."},"Target Sentiment Reason":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 5.400 shows very strong emotional content.","score_interpretation":"The score -0.200 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 5.400 reflects very strong emotional content. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}},{"Source URL":"https://www.financialexpress.com/life/technology/ai-moves-from-chatbots-to-machines/4243480/","Source Title":"AI moves from chatbots to machines","Target URL":"https://www.financialexpress.com/artificial-intelligence/google-cloud-teams-up-with-covasant-aims-to-bring-agentic-ai-to-regulated-industries/4216087/","Target Title":"Google Cloud teams up with Covasant; aims to bring ‘Agentic AI’ to regulated industries","Status":"Approved","Confidence Score":92,"Reason":"Both articles cover the same shift from chatbots to agentic AI systems that take real-world actions. The topic, technology and editorial framing are directly aligned.","Anchor Text Suggestion":"Agentic AI moving beyond chatbots","Link Placement Suggestion":"Directly after the section describing AI’s shift from digital to physical applications","Source Tag":"AI Chatbots to Machines","Entities":["Google Cloud","Covasant","Agentic AI"],"Source Sentiment":{"score":0,"name":"Neutral","magnitude":6.1,"reasoning":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 6.100 shows very strong emotional content.","score_interpretation":"The score 0.000 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 6.100 reflects very strong emotional content. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}},"Target Sentiment":null,"id":"fe-preview-005","source_date":null,"target_date":null,"generated_at":"2026-07-15T00:00:00.000Z","batch_id":"preview-20260715","nlp_status":"cached","metadata_status":"pending","source_reachable":null,"target_reachable":null,"Source Sentiment Reason":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 6.100 shows very strong emotional content.","score_interpretation":"The score 0.000 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 6.100 reflects very strong emotional content. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}},{"Source URL":"https://www.financialexpress.com/life/technology/ai-moves-from-chatbots-to-machines/4243480/","Source Title":"AI moves from chatbots to machines","Target URL":"https://www.financialexpress.com/artificial-intelligence/beyond-compute-networks/4233915/","Target Title":"Beyond compute, networks","Status":"Approved","Confidence Score":89,"Reason":"The source covers physical AI expansion, while the target analyses India’s AI infrastructure needs beyond compute. Both belong to the same AI infrastructure conversation.","Anchor Text Suggestion":"India’s AI infrastructure beyond compute","Link Placement Suggestion":"In the section explaining what physical AI needs in order to scale","Source Tag":"AI Chatbots to Machines","Entities":["AI infrastructure","compute","networks"],"Source Sentiment":{"score":0,"name":"Neutral","magnitude":6.1,"reasoning":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 6.100 shows very strong emotional content.","score_interpretation":"The score 0.000 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 6.100 reflects very strong emotional content. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}},"Target Sentiment":null,"id":"fe-preview-006","source_date":null,"target_date":null,"generated_at":"2026-07-15T00:00:00.000Z","batch_id":"preview-20260715","nlp_status":"cached","metadata_status":"pending","source_reachable":null,"target_reachable":null,"Source Sentiment Reason":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 6.100 shows very strong emotional content.","score_interpretation":"The score 0.000 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 6.100 reflects very strong emotional content. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}},{"Source URL":"https://www.financialexpress.com/life/technology/ai-moves-from-chatbots-to-machines/4243480/","Source Title":"AI moves from chatbots to machines","Target URL":"https://www.financialexpress.com/market/stock-insights/the-rs-4600-crore-power-play-how-ai-and-data-centres-are-rewiring-indias-cable-giants/4238118/","Target Title":"The Rs 4,600 crore power play: How AI and Data Centres are rewiring India’s cable giants","Status":"Approved","Confidence Score":88,"Reason":"Both articles focus on the physical infrastructure demands created by AI and the industrial investment required to support that growth.","Anchor Text Suggestion":"AI and data centres rewiring India’s cable sector","Link Placement Suggestion":"In the section on the physical infrastructure demands of the AI boom","Source Tag":"AI Chatbots to Machines","Entities":["AI","data centres","cable industry"],"Source Sentiment":{"score":0,"name":"Neutral","magnitude":6.1,"reasoning":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 6.100 shows very strong emotional content.","score_interpretation":"The score 0.000 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 6.100 reflects very strong emotional content. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}},"Target Sentiment":null,"id":"fe-preview-007","source_date":null,"target_date":null,"generated_at":"2026-07-15T00:00:00.000Z","batch_id":"preview-20260715","nlp_status":"cached","metadata_status":"pending","source_reachable":null,"target_reachable":null,"Source Sentiment Reason":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 6.100 shows very strong emotional content.","score_interpretation":"The score 0.000 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 6.100 reflects very strong emotional content. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}},{"Source URL":"https://www.financialexpress.com/life/technology/ai-moves-from-chatbots-to-machines/4243480/","Source Title":"AI moves from chatbots to machines","Target URL":"https://www.financialexpress.com/shorts/economy/govt-caps-gold-imports-under-export-scheme-tightens-monitoring-4241171/","Target Title":"Govt caps gold imports under export scheme, tightens monitoring","Status":"Rejected","Confidence Score":30,"Reason":"No editorial connection. The source covers physical AI and autonomous machines, while the target covers gold-import restrictions. Shared entities are generic.","Anchor Text Suggestion":"","Link Placement Suggestion":"","Source Tag":"AI Chatbots to Machines","Entities":["government","India"],"Source Sentiment":{"score":0,"name":"Neutral","magnitude":6.1,"reasoning":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 6.100 shows very strong emotional content.","score_interpretation":"The score 0.000 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 6.100 reflects very strong emotional content. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}},"Target Sentiment":null,"id":"fe-preview-008","source_date":null,"target_date":null,"generated_at":"2026-07-15T00:00:00.000Z","batch_id":"preview-20260715","nlp_status":"cached","metadata_status":"pending","source_reachable":null,"target_reachable":null,"Source Sentiment Reason":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 6.100 shows very strong emotional content.","score_interpretation":"The score 0.000 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 6.100 reflects very strong emotional content. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}},{"Source URL":"https://www.financialexpress.com/policy/economy/govt-tightens-rules-for-import-of-silver/4242851/","Source Title":"Govt tightens rules for import of silver","Target URL":"https://www.financialexpress.com/policy/economy/govt-caps-gold-imports-under-exportnbspscheme-tightens-monitoring/4241171/","Target Title":"Govt caps gold imports under export scheme, tightens monitoring","Status":"Approved","Confidence Score":94,"Reason":"This is a direct companion article from the same policy series, covering the same objective of restricting precious-metal imports. The source covers silver and the target covers gold.","Anchor Text Suggestion":"government caps on gold under the export scheme","Link Placement Suggestion":"As a companion link in the section covering the wider precious-metals policy","Source Tag":"Govt Silver Import Rules","Entities":["silver","gold","import policy"],"Source Sentiment":{"score":0,"name":"Neutral","magnitude":4.2,"reasoning":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 4.200 shows strong emotional strength.","score_interpretation":"The score 0.000 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 4.200 reflects strong emotional strength. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}},"Target Sentiment":null,"id":"fe-preview-009","source_date":null,"target_date":null,"generated_at":"2026-07-15T00:00:00.000Z","batch_id":"preview-20260715","nlp_status":"cached","metadata_status":"pending","source_reachable":null,"target_reachable":null,"Source Sentiment Reason":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 4.200 shows strong emotional strength.","score_interpretation":"The score 0.000 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 4.200 reflects strong emotional strength. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}},{"Source URL":"https://www.financialexpress.com/policy/economy/govt-tightens-rules-for-import-of-silver/4242851/","Source Title":"Govt tightens rules for import of silver","Target URL":"https://www.financialexpress.com/policy/economy/explainernbsphow-govt-hopes-to-curb-demand-for-gold-with-heftier-duties/4242254/","Target Title":"Explainer: How govt hopes to curb demand for gold with heftier duties","Status":"Approved","Confidence Score":90,"Reason":"The source covers silver restrictions, while the target explains the broader precious-metals duty policy and the government’s attempt to curb demand.","Anchor Text Suggestion":"how India plans to curb precious-metal demand","Link Placement Suggestion":"As a background explainer in the section discussing the policy framework","Source Tag":"Govt Silver Import Rules","Entities":["silver","gold","import duties"],"Source Sentiment":{"score":0,"name":"Neutral","magnitude":4.2,"reasoning":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 4.200 shows strong emotional strength.","score_interpretation":"The score 0.000 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 4.200 reflects strong emotional strength. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}},"Target Sentiment":null,"id":"fe-preview-010","source_date":null,"target_date":null,"generated_at":"2026-07-15T00:00:00.000Z","batch_id":"preview-20260715","nlp_status":"cached","metadata_status":"pending","source_reachable":null,"target_reachable":null,"Source Sentiment Reason":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 4.200 shows strong emotional strength.","score_interpretation":"The score 0.000 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 4.200 reflects strong emotional strength. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}},{"Source URL":"https://www.financialexpress.com/policy/economy/govt-tightens-rules-for-import-of-silver/4242851/","Source Title":"Govt tightens rules for import of silver","Target URL":"https://www.financialexpress.com/policy/economy/exports-grow-in-april-despite-west-asia-crisis/4242046/","Target Title":"Exports grow in April despite West Asia crisis","Status":"Approved","Confidence Score":77,"Reason":"India’s export performance and import bill are connected parts of the external-balance context that motivates tighter controls on silver imports.","Anchor Text Suggestion":"India’s trade balance in April","Link Placement Suggestion":"In the section explaining the forex and trade-balance pressure behind the import curbs","Source Tag":"Govt Silver Import Rules","Entities":["exports","import bill","trade balance"],"Source Sentiment":{"score":0,"name":"Neutral","magnitude":4.2,"reasoning":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 4.200 shows strong emotional strength.","score_interpretation":"The score 0.000 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 4.200 reflects strong emotional strength. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}},"Target Sentiment":null,"id":"fe-preview-011","source_date":null,"target_date":null,"generated_at":"2026-07-15T00:00:00.000Z","batch_id":"preview-20260715","nlp_status":"cached","metadata_status":"pending","source_reachable":null,"target_reachable":null,"Source Sentiment Reason":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 4.200 shows strong emotional strength.","score_interpretation":"The score 0.000 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 4.200 reflects strong emotional strength. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}},{"Source URL":"https://www.financialexpress.com/policy/economy/govt-tightens-rules-for-import-of-silver/4242851/","Source Title":"Govt tightens rules for import of silver","Target URL":"https://www.financialexpress.com/policy/economy/fiscal-strain-unlikely-to-hit-crisis-relief/4241164/","Target Title":"Fiscal strain unlikely to hit crisis relief","Status":"Rejected","Confidence Score":52,"Reason":"Both articles mention government policy measures, but the target covers fiscal deficit and crisis-relief spending rather than precious-metal import restrictions.","Anchor Text Suggestion":"","Link Placement Suggestion":"","Source Tag":"Govt Silver Import Rules","Entities":["government","fiscal policy"],"Source Sentiment":{"score":0,"name":"Neutral","magnitude":4.2,"reasoning":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 4.200 shows strong emotional strength.","score_interpretation":"The score 0.000 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 4.200 reflects strong emotional strength. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}},"Target Sentiment":null,"id":"fe-preview-012","source_date":null,"target_date":null,"generated_at":"2026-07-15T00:00:00.000Z","batch_id":"preview-20260715","nlp_status":"cached","metadata_status":"pending","source_reachable":null,"target_reachable":null,"Source Sentiment Reason":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 4.200 shows strong emotional strength.","score_interpretation":"The score 0.000 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 4.200 reflects strong emotional strength. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}},{"Source URL":"https://www.financialexpress.com/business/news/india-set-to-lead-global-ai-economy-says-shah/4243549/","Source Title":"India set to lead global AI economy, says Shah","Target URL":"https://www.financialexpress.com/artificial-intelligence/beyond-compute-networks/4233915/","Target Title":"Beyond compute, networks","Status":"Approved","Confidence Score":90,"Reason":"Both articles address India’s AI leadership ambition and the infrastructure required to support it. The target provides deeper analytical context.","Anchor Text Suggestion":"what India needs beyond computing for AI leadership","Link Placement Suggestion":"As a companion read in the section outlining the full AI-infrastructure requirement","Source Tag":"India AI Economy (Shah)","Entities":["India","AI economy","digital infrastructure"],"Source Sentiment":{"score":0.1,"name":"Neutral","magnitude":2.7,"reasoning":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 2.700 shows strong emotional strength.","score_interpretation":"The score 0.100 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 2.700 reflects strong emotional strength. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}},"Target Sentiment":null,"id":"fe-preview-013","source_date":null,"target_date":null,"generated_at":"2026-07-15T00:00:00.000Z","batch_id":"preview-20260715","nlp_status":"cached","metadata_status":"pending","source_reachable":null,"target_reachable":null,"Source Sentiment Reason":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 2.700 shows strong emotional strength.","score_interpretation":"The score 0.100 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 2.700 reflects strong emotional strength. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}},{"Source URL":"https://www.financialexpress.com/business/news/india-set-to-lead-global-ai-economy-says-shah/4243549/","Source Title":"India set to lead global AI economy, says Shah","Target URL":"https://www.financialexpress.com/artificial-intelligence/ai-may-be-brought-under-new-digital-competition-law/3962791/","Target Title":"AI may be brought under new digital competition law","Status":"Approved","Confidence Score":82,"Reason":"The source covers India’s AI-economy ambitions, while the target provides directly relevant regulatory context under the proposed Digital Competition framework.","Anchor Text Suggestion":"India’s AI competition regulation","Link Placement Suggestion":"In the section covering the policy environment needed for India’s AI leadership","Source Tag":"India AI Economy (Shah)","Entities":["AI regulation","Digital Competition Bill","India"],"Source Sentiment":{"score":0.1,"name":"Neutral","magnitude":2.7,"reasoning":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 2.700 shows strong emotional strength.","score_interpretation":"The score 0.100 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 2.700 reflects strong emotional strength. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}},"Target Sentiment":null,"id":"fe-preview-014","source_date":null,"target_date":null,"generated_at":"2026-07-15T00:00:00.000Z","batch_id":"preview-20260715","nlp_status":"cached","metadata_status":"pending","source_reachable":null,"target_reachable":null,"Source Sentiment Reason":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 2.700 shows strong emotional strength.","score_interpretation":"The score 0.100 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 2.700 reflects strong emotional strength. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}},{"Source URL":"https://www.financialexpress.com/business/news/india-set-to-lead-global-ai-economy-says-shah/4243549/","Source Title":"India set to lead global AI economy, says Shah","Target URL":"https://www.financialexpress.com/artificial-intelligence/google-cloud-teams-up-with-covasant-aims-to-bring-agentic-ai-to-regulated-industries/4216087/","Target Title":"Google Cloud teams up with Covasant; aims to bring ‘Agentic AI’ to regulated industries","Status":"Approved","Confidence Score":84,"Reason":"The target is a concrete example of an India-focused partnership bringing agentic AI to regulated industries, which supports the broader AI-economy thesis in the source.","Anchor Text Suggestion":"Google Cloud bringing agentic AI to Indian industries","Link Placement Suggestion":"In the section on the development of India’s AI ecosystem","Source Tag":"India AI Economy (Shah)","Entities":["Google Cloud","Agentic AI","India"],"Source Sentiment":{"score":0.1,"name":"Neutral","magnitude":2.7,"reasoning":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 2.700 shows strong emotional strength.","score_interpretation":"The score 0.100 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 2.700 reflects strong emotional strength. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}},"Target Sentiment":null,"id":"fe-preview-015","source_date":null,"target_date":null,"generated_at":"2026-07-15T00:00:00.000Z","batch_id":"preview-20260715","nlp_status":"cached","metadata_status":"pending","source_reachable":null,"target_reachable":null,"Source Sentiment Reason":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 2.700 shows strong emotional strength.","score_interpretation":"The score 0.100 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 2.700 reflects strong emotional strength. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}},{"Source URL":"https://www.financialexpress.com/business/news/india-set-to-lead-global-ai-economy-says-shah/4243549/","Source Title":"India set to lead global AI economy, says Shah","Target URL":"https://www.financialexpress.com/world-news/is-iran-introducing-strait-of-hormuz-tolls-india-speaks-out-against-targeting-of-commercial-shipping/4243021/","Target Title":"Is Iran introducing Strait of Hormuz tolls? India speaks out against targeting of commercial shipping","Status":"Rejected","Confidence Score":30,"Reason":"No editorial connection. The source concerns India’s AI-economy ambitions, while the target covers commercial shipping and the Strait of Hormuz. Shared country references are too generic.","Anchor Text Suggestion":"","Link Placement Suggestion":"","Source Tag":"India AI Economy (Shah)","Entities":["India","commercial shipping"],"Source Sentiment":{"score":0.1,"name":"Neutral","magnitude":2.7,"reasoning":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 2.700 shows strong emotional strength.","score_interpretation":"The score 0.100 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 2.700 reflects strong emotional strength. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}},"Target Sentiment":null,"id":"fe-preview-016","source_date":null,"target_date":null,"generated_at":"2026-07-15T00:00:00.000Z","batch_id":"preview-20260715","nlp_status":"cached","metadata_status":"pending","source_reachable":null,"target_reachable":null,"Source Sentiment Reason":{"label":"Neutral","summary":"Neutral but emotionally active: positive, negative or strongly framed sentences balance near zero, while magnitude 2.700 shows strong emotional strength.","score_interpretation":"The score 0.100 sits between -0.25 and +0.25, so the document is neutral overall.","magnitude_interpretation":"Magnitude 2.700 reflects strong emotional strength. Magnitude is not normalized for article length, so longer articles can naturally have larger values.","evidence":[],"method":"rule_based_interpretation","disclaimer":"Google NLP supplies score, magnitude and sentence-level sentiment. The written explanation is generated by transparent rules; it is not a separate opinion from Google."}}];
+let ALL_DATA = [...FALLBACK_DATA];
+let ACTION_MAP = {};
+let API_HEALTH = {status:"preview", persistence:"browser"};
+let SOURCE_HEALTH = null;
+let DATA_PROVENANCE = null;
+const SOURCE_META = [
+  {tag:"Navi Mumbai Airport", title:"Navi Mumbai airport’s next challenge", cls:"s0", tagCls:"tag-s0"},
+  {tag:"AI Chatbots to Machines", title:"AI moves from chatbots to machines", cls:"s1", tagCls:"tag-s1"},
+  {tag:"Govt Silver Import Rules", title:"Govt tightens rules for silver imports", cls:"s2", tagCls:"tag-s2"},
+  {tag:"India AI Economy (Shah)", title:"India set to lead global AI economy", cls:"s3", tagCls:"tag-s3"}
+];
+const PAGE_SIZE = 10;
+let visibleLimit = PAGE_SIZE;
+let expandedKey = null;
+let currentRows = [];
+
+document.getElementById("run-date").textContent =
+  "Loading API… " + new Date().toLocaleDateString("en-IN", {day:"numeric",month:"short",year:"numeric"});
+
+function esc(v) {
+  return String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+}
+function recordKey(r) { return r["Source URL"] + "||" + r["Target URL"]; }
+function sourceMeta(tag) { return SOURCE_META.find(x => x.tag === tag) || SOURCE_META[0]; }
+function scoreClass(score) {
+  if (score >= 85) return ["num-high","fill-high"];
+  if (score >= 75) return ["num-mid","fill-mid"];
+  return ["num-low","fill-low"];
+}
+
+function duplicateStatus(r) {
+  const source = String(r["Source URL"] || "").replace(/\/+$/,"").toLowerCase();
+  const target = String(r["Target URL"] || "").replace(/\/+$/,"").toLowerCase();
+  return source && target && source !== target;
+}
+function dateValidationStatus(r) {
+  const sourceRaw = r.source_date || r["Source Date"];
+  const targetRaw = r.target_date || r["Target Date"];
+  if (sourceRaw && targetRaw) {
+    const sourceDate = new Date(sourceRaw);
+    const targetDate = new Date(targetRaw);
+    if (!Number.isNaN(sourceDate.getTime()) && !Number.isNaN(targetDate.getTime())) {
+      return {
+        state: sourceDate > targetDate ? "ok" : "pending",
+        text: sourceDate > targetDate ? "Date: Passed" : "Date: Failed"
+      };
+    }
+  }
+  return {state:"pending", text:"Date: Metadata pending"};
+}
+function apiStatus(r) {
+  const status = String(r.nlp_status || "").toLowerCase();
+  if (status === "live") return {state:"ok", text:"Google NLP: Live"};
+  if (status === "cached") return {state:"info", text:"Google NLP: Cached"};
+  if (status === "failed") return {state:"pending", text:"Google NLP: Failed"};
+  if (status === "not_configured") return {state:"pending", text:"Google NLP: Not configured"};
+  const hasSource = !!r["Source Sentiment"];
+  const hasTarget = !!r["Target Sentiment"];
+  if (hasSource && hasTarget) return {state:"ok", text:"Google NLP: Data available"};
+  if (hasSource || hasTarget) return {state:"info", text:"Google NLP: Partial cached data"};
+  return {state:"pending", text:"Google NLP: Not available"};
+}
+
+
+function anchorRecommendation(r) {
+  const existing = String(r["Anchor Text Suggestion"] || "").trim();
+  if (existing) return existing;
+  if (String(r.Status || "").toLowerCase() !== "approved") {
+    return "Not applicable — rejected";
+  }
+
+  const entities = Array.isArray(r.Entities) ? r.Entities : [];
+  const usefulEntity = entities.find(value => {
+    const words = String(value || "").trim().split(/\s+/).filter(Boolean);
+    return words.length >= 2 && words.length <= 8;
+  });
+  if (usefulEntity) return usefulEntity;
+
+  const stopWords = new Set([
+    "the","a","an","and","or","but","for","to","of","in","on","at","by","with",
+    "from","as","is","are","was","were","be","been","being","this","that","these",
+    "those","how","why","what","when","where","who","all","you","need","know",
+    "says","report"
+  ]);
+  const words = String(r["Target Title"] || "")
+    .replace(/[^\p{L}\p{N}\s'-]/gu, " ")
+    .split(/\s+/)
+    .filter(Boolean)
+    .filter(word => !stopWords.has(word.toLowerCase()))
+    .slice(0, 8);
+
+  return words.join(" ") || "Related coverage";
+}
+
+function fallbackSentimentReason(s) {
+  if (!s || s.score == null || s.magnitude == null) {
+    return {summary:"Sentiment explanation is unavailable because score or magnitude is missing.", evidence:[], disclaimer:""};
+  }
+  const score = Number(s.score);
+  const magnitude = Number(s.magnitude);
+  const label = score > 0.25 ? "Positive" : score < -0.25 ? "Negative" : "Neutral";
+  const strength = magnitude < 0.5 ? "low emotional strength"
+    : magnitude < 2 ? "moderate emotional strength"
+    : magnitude < 5 ? "strong emotional strength"
+    : "very strong emotional content";
+  let summary;
+  if (label === "Positive") summary = `Score ${score.toFixed(3)} is above +0.25, so the article is positive overall. Magnitude ${magnitude.toFixed(3)} indicates ${strength}.`;
+  else if (label === "Negative") summary = `Score ${score.toFixed(3)} is below -0.25, so the article is negative overall. Magnitude ${magnitude.toFixed(3)} indicates ${strength}.`;
+  else if (magnitude >= 2) summary = `Score ${score.toFixed(3)} is neutral, but magnitude ${magnitude.toFixed(3)} is high. Strong positive, negative or framed sentences balance near zero.`;
+  else summary = `Score ${score.toFixed(3)} is neutral and magnitude ${magnitude.toFixed(3)} is low to moderate, suggesting mostly factual or mildly framed language.`;
+  return {
+    summary,
+    evidence: Array.isArray(s.reasoning?.evidence) ? s.reasoning.evidence : [],
+    disclaimer: "Google NLP provides score and magnitude; this written reason is a transparent rule-based interpretation."
+  };
+}
+function sentimentReasonFor(r, side) {
+  const explicit = r[side + " Sentiment Reason"];
+  const sentiment = r[side + " Sentiment"];
+  return explicit || sentiment?.reasoning || fallbackSentimentReason(sentiment);
+}
+function sentimentReasonHtml(reason) {
+  if (!reason) return "";
+  const evidence = Array.isArray(reason.evidence) && reason.evidence.length
+    ? `<ul class="sentiment-evidence">${reason.evidence.slice(0,3).map(item =>
+        `<li>${esc(item.label || "")} ${item.score != null ? "(" + Number(item.score).toFixed(3) + ")" : ""}: ${esc(item.text || "")}</li>`
+      ).join("")}</ul>`
+    : "";
+  return `<div class="sentiment-reason"><strong>Why this score:</strong> ${esc(reason.summary || "")}${evidence}<div class="sentiment-method">${esc(reason.disclaimer || "Google NLP supplies the numerical values; the explanation is generated from transparent rules.")}</div></div>`;
+}
+function sentimentHtml(s, reason=null) {
+  if (!s) return '<span class="sentiment-muted">Not available</span>';
+  const cls = s.name === "Positive" ? "sentiment-positive" : s.name === "Negative" ? "sentiment-negative" : "sentiment-neutral";
+  return `<div class="sentiment-box"><strong class="${cls}">${esc(s.name)}</strong><br>Score: <span class="sentiment-score">${esc(s.score)}</span><br><span class="sentiment-mag">Magnitude: ${esc(s.magnitude)}</span>${sentimentReasonHtml(reason || s.reasoning || fallbackSentimentReason(s))}</div>`;
+}
+function entitiesHtml(items) {
+  return (items || []).map(x => `<span class="entity-pill">${esc(x)}</span>`).join("");
+}
+function renderSourceStrip() {
+  document.getElementById("sourceStrip").innerHTML = SOURCE_META.map(m => {
+    const count = ALL_DATA.filter(r => r["Source Tag"] === m.tag).length;
+    return `<div class="source-card">
+      <span class="source-dot ${m.cls}"></span>
+      <div class="source-card-info">
+        <div class="source-card-label">${esc(m.tag)}</div>
+        <div class="source-card-title">${esc(m.title)}</div>
+      </div>
+      <div class="source-card-count">${count}</div>
+    </div>`;
+  }).join("");
+}
+function getFilteredRows() {
+  const q = document.getElementById("searchInput").value.trim().toLowerCase();
+  const status = document.getElementById("statusFilter").value;
+  const source = document.getElementById("sourceFilter").value;
+  const scoreBand = document.getElementById("scoreFilter").value;
+  const sort = document.getElementById("sortSelect").value;
+
+  let rows = ALL_DATA.filter(r => {
+    const hay = [
+      r["Source Title"], r["Target Title"], r["Reason"], r["Anchor Text Suggestion"],
+      r["Link Placement Suggestion"], r["Source Sentiment Reason"]?.summary, r["Target Sentiment Reason"]?.summary, ...(r.Entities || [])
+    ].join(" ").toLowerCase();
+    if (q && !hay.includes(q)) return false;
+    if (status && r.Status !== status) return false;
+    if (source && r["Source Tag"] !== source) return false;
+    const score = Number(r["Confidence Score"]);
+    if (scoreBand === "90" && score < 90) return false;
+    if (scoreBand === "80" && !(score >= 80 && score < 90)) return false;
+    if (scoreBand === "75" && !(score >= 75 && score < 80)) return false;
+    if (scoreBand === "0" && score >= 75) return false;
+    return true;
+  });
+
+  rows.sort((a,b) => {
+    if (sort === "Confidence Score") return Number(b[sort]) - Number(a[sort]);
+    return String(a[sort] || "").localeCompare(String(b[sort] || ""));
+  });
+  return rows;
+}
+function actionState(key) {
+  if (ACTION_MAP[key] && ACTION_MAP[key].action) return ACTION_MAP[key].action;
+  try { return localStorage.getItem("fe-semantic-action:" + key) || ""; } catch { return ""; }
+}
+async function setAction(event, key, action) {
+  event.stopPropagation();
+  const previous = actionState(key);
+  const nextAction = previous === action ? "" : action;
+  ACTION_MAP[key] = { action: nextAction, updated_at: new Date().toISOString() };
+  try {
+    if (nextAction) localStorage.setItem("fe-semantic-action:" + key, nextAction);
+    else localStorage.removeItem("fe-semantic-action:" + key);
+  } catch {}
+  renderTable(false);
+  try {
+    const response = await fetch("/api/actions", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({record_key:key, action:nextAction || "cleared"})
+    });
+    if (!response.ok) throw new Error("Action API returned " + response.status);
+    const payload = await response.json();
+    API_HEALTH.persistence = payload.persistence || API_HEALTH.persistence;
+    updateHeaderStatus();
+  } catch (error) {
+    console.warn("Editorial action saved in browser fallback:", error);
+  }
+}
+async function copyRecommendation(event, r) {
+  event.stopPropagation();
+  const text = [
+    "Suggested anchor text: " + anchorRecommendation(r),
+    "Target URL: " + (r["Target URL"] || ""),
+    "Suggested placement: " + (r["Link Placement Suggestion"] || "Not available"),
+    "Recommendation reason: " + (r.Reason || ""),
+    "Source sentiment reason: " + (sentimentReasonFor(r, "Source")?.summary || "Not available")
+  ].join("\n");
+  try {
+    await navigator.clipboard.writeText(text);
+    event.currentTarget.textContent = "Copied";
+    setTimeout(() => { event.currentTarget.textContent = "Copy Recommendation"; }, 1200);
+  } catch {
+    window.prompt("Copy recommendation", text);
+  }
+}
+function toggleReason(event, id) {
+  event.stopPropagation();
+  const box = document.getElementById(id);
+  const btn = event.currentTarget;
+  box.classList.toggle("open");
+  btn.textContent = box.classList.contains("open") ? "Show less" : "Read more";
+}
+function toggleRow(key) {
+  expandedKey = expandedKey === key ? null : key;
+  renderTable(false);
+}
+function expandedHtml(r) {
+  const key = recordKey(r);
+  const action = actionState(key);
+  const anchor = anchorRecommendation(r);
+  const placement = r["Link Placement Suggestion"] || "Not recommended for rejected pair";
+  const duplicatePass = r["Source URL"] !== r["Target URL"];
+  return `<tr class="expanded-detail"><td colspan="8">
+    <div class="exp-grid">
+      <div>
+        <div class="exp-label">Suggested Anchor Text</div>
+        <div class="exp-value"><span class="exp-anchor">${esc(anchor)}</span></div>
+        <div class="exp-label" style="margin-top:14px">Recommended Placement</div>
+        <div class="exp-value">${esc(placement)}</div>
+      </div>
+      <div>
+        <div class="exp-label">Source Sentiment</div>
+        <div class="exp-value">${sentimentHtml(r["Source Sentiment"], sentimentReasonFor(r, "Source"))}</div>
+        <div class="exp-label" style="margin-top:14px">Target Sentiment</div>
+        <div class="exp-value">${sentimentHtml(r["Target Sentiment"], sentimentReasonFor(r, "Target"))}</div>
+      </div>
+      <div>
+        <div class="exp-label">Automated Validation</div>
+        <div class="exp-value">
+          Same URL / duplicate check: <span class="${duplicatePass ? "validation-ok" : "validation-pending"}">${duplicatePass ? "Passed" : "Review required"}</span><br>
+          Source/target date rule: <span class="${dateValidationStatus(r).state === "ok" ? "validation-ok" : "validation-pending"}">${esc(dateValidationStatus(r).text.replace("Date: ", ""))}</span><br>
+          CMS integration: <span class="validation-pending">Assigned to Tech team</span>
+        </div>
+        <div class="exp-label" style="margin-top:14px">Editorial Action</div>
+        <div class="action-row">
+          <button class="action-btn used ${action==="used"?"active":""}" onclick="setAction(event, '${esc(key)}', 'used')">Mark Used</button>
+          <button class="action-btn ignore ${action==="ignore"?"active":""}" onclick="setAction(event, '${esc(key)}', 'ignore')">Ignore</button>
+          <button class="action-btn reject ${action==="reject"?"active":""}" onclick="setAction(event, '${esc(key)}', 'reject')">Reject</button>
+          <button class="action-btn" onclick='copyRecommendation(event, ${JSON.stringify(r)})'>Copy Recommendation</button>
+        </div>
+      </div>
+    </div>
+    <div class="exp-grid" style="margin-top:18px">
+      <div><div class="exp-label">Source URL</div><a class="exp-url" href="${esc(r["Source URL"])}" target="_blank" rel="noopener">${esc(r["Source URL"])}</a></div>
+      <div><div class="exp-label">Target URL</div><a class="exp-url" href="${esc(r["Target URL"])}" target="_blank" rel="noopener">${esc(r["Target URL"])}</a></div>
+      <div><div class="exp-label">API Status</div><div class="exp-value">
+        Google NLP: ${esc(apiStatus(r).text.replace("Google NLP: ", ""))}<br>
+        Source: ${esc(r.source_content_source || r.target_content_source || "processed cache")}<br>
+        Cache: ${esc(r.nlp_cache_status || r.source_cache_status || "processed cache")}<br>
+        WordPress REST: ${esc(SOURCE_HEALTH?.source_status?.tests?.wordpress_rest?.status || "not tested")}<br>
+        RSS: ${esc(SOURCE_HEALTH?.source_status?.tests?.rss?.status || "not tested")}
+      </div></div>
+    </div>
+  </td></tr>`;
+}
+function renderTable(resetLimit=true) {
+  if (resetLimit) visibleLimit = PAGE_SIZE;
+  currentRows = getFilteredRows();
+  document.getElementById("resultCountNum").textContent = currentRows.length;
+  const shown = currentRows.slice(0, visibleLimit);
+  const body = document.getElementById("tableBody");
+  if (!shown.length) {
+    body.innerHTML = '<tr class="empty-row"><td colspan="8">No matching recommendations</td></tr>';
+  } else {
+    body.innerHTML = shown.map((r, i) => {
+      const key = recordKey(r);
+      const meta = sourceMeta(r["Source Tag"]);
+      const [numCls, fillCls] = scoreClass(Number(r["Confidence Score"]));
+      const reasonId = "reason-" + i + "-" + Math.abs(hashCode(key));
+      const parentClass = expandedKey === key ? "data-row expanded-parent" : "data-row";
+      const row = `<tr class="${parentClass}" onclick="toggleRow('${esc(key)}')">
+        <td><div class="score-wrap"><span class="score-num ${numCls}">${esc(r["Confidence Score"])}</span><span class="score-bar-bg"><span class="score-bar-fill ${fillCls}" style="display:block;width:${Math.max(0,Math.min(100,Number(r["Confidence Score"])))}%"></span></span></div></td>
+        <td><span class="badge ${r.Status==="Approved"?"badge-approved":"badge-rejected"}">${esc(r.Status)}</span></td>
+        <td><span class="src-tag ${meta.tagCls}">${esc(r["Source Tag"])}</span><div class="title-text">${esc(r["Source Title"])}</div><a href="${esc(r["Source URL"])}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open source ↗</a></td>
+        <td>
+          <div class="title-text">${esc(r["Target Title"])}</div>
+          <a href="${esc(r["Target URL"])}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Open target ↗</a>
+        </td>
+        <td>
+          <div class="inline-detail" style="margin-top:0;padding-top:0;border-top:0">
+            <span class="inline-detail-label">Recommended Anchor</span>
+            <span class="inline-anchor">${esc(anchorRecommendation(r))}</span>
+          </div>
+        </td>
+        <td>
+          ${entitiesHtml(r.Entities)}
+          <div class="status-stack">
+            <span class="mini-status ${duplicateStatus(r) ? "ok" : "pending"}">${duplicateStatus(r) ? "Duplicate / same URL: Passed" : "Duplicate / same URL: Review"}</span>
+            <span class="mini-status ${dateValidationStatus(r).state}">${dateValidationStatus(r).text}</span>
+          </div>
+        </td>
+        <td>
+          ${sentimentHtml(r["Source Sentiment"], sentimentReasonFor(r, "Source"))}
+          <div class="status-stack">
+            <span class="mini-status ${apiStatus(r).state}">${apiStatus(r).text}</span>
+            <span class="mini-status ${API_HEALTH.status === "healthy" ? "ok" : "info"}">API: ${esc(API_HEALTH.status || "preview fallback")}</span>
+            <span class="mini-status info">Content: ${esc(r.source_content_source || "processed cache")}</span>
+          </div>
+        </td>
+        <td><div class="reason-preview" id="${reasonId}">${esc(r.Reason)}</div>${r.Reason.length>115?`<button class="read-more" onclick="toggleReason(event,'${reasonId}')">Read more</button>`:""}</td>
+      </tr>`;
+      return row + (expandedKey === key ? expandedHtml(r) : "");
+    }).join("");
+  }
+  const more = currentRows.length > visibleLimit;
+  document.getElementById("loadMoreWrap").innerHTML = more
+    ? `<button class="load-more-btn" onclick="loadMoreRows()">Load More</button>`
+    : "";
+}
+function hashCode(s) {
+  let h = 0; for (let i=0;i<s.length;i++) h = ((h<<5)-h) + s.charCodeAt(i) | 0; return h;
+}
+function loadMoreRows() { visibleLimit += PAGE_SIZE; renderTable(false); }
+function downloadCSV() {
+  const fields = ["Source URL","Source Title","Target URL","Target Title","Status","Confidence Score","Anchor Text Suggestion","Link Placement Suggestion","Source Sentiment Reason","Target Sentiment Reason","Reason","Editorial Action"];
+  const lines = [fields.join(",")];
+  currentRows.forEach(r => {
+    const values = fields.map(f => {
+      let v = f === "Editorial Action" ? actionState(recordKey(r)) : (r[f] ?? "");
+      if ((f === "Source Sentiment Reason" || f === "Target Sentiment Reason") && v && typeof v === "object") v = v.summary || JSON.stringify(v);
+      return '"' + String(v).replaceAll('"','""') + '"';
+    });
+    lines.push(values.join(","));
+  });
+  const blob = new Blob([lines.join("\n")], {type:"text/csv;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href=url; a.download="fe-semantic-preview-filtered.csv";
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+["searchInput","statusFilter","sourceFilter","scoreFilter","sortSelect"].forEach(id => {
+  document.getElementById(id).addEventListener(id === "searchInput" ? "input" : "change", () => {
+    expandedKey = null; renderTable(true);
+  });
+});
+function statusClass(status) {
+  const value = String(status || "").toLowerCase();
+  if (["live", "cache", "fallback", "last-crawl", "stale-cache", "failed", "configured", "ready"].includes(value)) return value;
+  return "configured";
+}
+function formatCrawlDate(value) {
+  if (!value) return "unknown";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return date.toLocaleString("en-IN", {day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit"});
+}
+function setProvenanceChip(id, prefix, source) {
+  const element = document.getElementById(id);
+  if (!element) return;
+  const status = statusClass(source?.status);
+  element.className = `provenance-chip ${status}`;
+  element.textContent = `${prefix}: ${source?.label || "Unknown"}`;
+  element.title = source?.detail || "";
+}
+function fallbackProvenance() {
+  const statuses = ALL_DATA.map(item => String(item.nlp_status || "").toLowerCase());
+  const nlpLabel = statuses.includes("live") ? "Google NLP · Last Crawl" : statuses.some(x => ["cached","cache","stale-cache"].includes(x)) ? "Google NLP Cache" : "Last Crawl";
+  const nlpStatus = statuses.includes("live") ? "last-crawl" : statuses.some(x => ["cached","cache"].includes(x)) ? "cache" : "last-crawl";
+  const generated = ALL_DATA.find(item => item.generated_at)?.generated_at || API_HEALTH.generated_at || null;
+  return {
+    status:"fallback",
+    article_source:{label:"Last Crawl",status:"last-crawl",detail:"Standalone preview or live sources unavailable"},
+    entity_source:{label:nlpLabel,status:nlpStatus,detail:"Entities loaded from the processed recommendation dataset"},
+    sentiment_source:{label:nlpLabel,status:nlpStatus,detail:"Sentiment loaded from the processed recommendation dataset"},
+    fallback_message:"Live APIs unavailable in this view; showing the safest processed source.",
+    last_crawl:{generated_at:generated,batch_id:API_HEALTH.batch_id || ALL_DATA[0]?.batch_id || null,record_count:ALL_DATA.length}
+  };
+}
+function updateProvenanceHeader(payload = null) {
+  DATA_PROVENANCE = payload || fallbackProvenance();
+  setProvenanceChip("articleSourceChip", "Articles", DATA_PROVENANCE.article_source);
+  setProvenanceChip("entitySourceChip", "Entities", DATA_PROVENANCE.entity_source);
+  setProvenanceChip("sentimentSourceChip", "Sentiment", DATA_PROVENANCE.sentiment_source);
+  const crawl = document.getElementById("lastCrawlChip");
+  if (crawl) {
+    crawl.className = "provenance-chip last-crawl";
+    const date = formatCrawlDate(DATA_PROVENANCE.last_crawl?.generated_at);
+    crawl.textContent = `Last Crawl: ${date}`;
+    crawl.title = DATA_PROVENANCE.last_crawl?.batch_id ? `Batch ${DATA_PROVENANCE.last_crawl.batch_id}` : "Last processed dataset";
+  }
+  const message = document.getElementById("provenanceMessage");
+  if (message) message.textContent = DATA_PROVENANCE.fallback_message || "Live source status loaded.";
+}
+function updateHeaderStatus() {
+  const badge = document.getElementById("run-date");
+  const batch = API_HEALTH.batch_id || ALL_DATA[0]?.batch_id || "current";
+  badge.textContent = `${API_HEALTH.status === "healthy" ? "API healthy" : "Dashboard ready"} · Batch ${batch}`;
+}
+async function refreshLiveProvenance() {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 20000);
+  try {
+    const response = await fetch("/api/provenance?live=1", {cache:"no-store", signal:controller.signal});
+    if (!response.ok) throw new Error(`Provenance API returned ${response.status}`);
+    updateProvenanceHeader(await response.json());
+  } catch (error) {
+    console.warn("Live provenance unavailable; using last crawl:", error);
+    updateProvenanceHeader(fallbackProvenance());
+  } finally {
+    clearTimeout(timer);
+  }
+}
+function updateMetrics(summary) {
+  const cards = document.querySelectorAll(".card .num");
+  if (!cards || cards.length < 6) return;
+  const total = summary.total ?? ALL_DATA.length;
+  const approved = summary.approved ?? ALL_DATA.filter(r => r.Status === "Approved").length;
+  const rejected = summary.rejected ?? ALL_DATA.filter(r => r.Status === "Rejected").length;
+  const avg = summary.avg_score ?? Math.round(ALL_DATA.reduce((s,r)=>s+Number(r["Confidence Score"]||0),0)/Math.max(1,ALL_DATA.length));
+  cards[0].textContent = total;
+  cards[1].textContent = approved;
+  cards[2].textContent = rejected;
+  cards[3].textContent = total ? ((approved/total)*100).toFixed(1)+"%" : "0%";
+  cards[4].textContent = avg;
+  cards[5].textContent = new Set(ALL_DATA.map(r=>r["Source URL"])).size;
+}
+async function bootstrap() {
+  let summary = {};
+  try {
+    const [recommendationsResponse, healthResponse, actionsResponse] = await Promise.all([
+      fetch("/api/recommendations", {cache:"no-store"}),
+      fetch("/api/health", {cache:"no-store"}),
+      fetch("/api/actions", {cache:"no-store"})
+    ]);
+    if (recommendationsResponse.ok) {
+      const payload = await recommendationsResponse.json();
+      if (Array.isArray(payload.items) && payload.items.length) ALL_DATA = payload.items;
+      summary = payload.summary || {};
+      API_HEALTH.batch_id = payload.batch_id;
+    }
+    if (healthResponse.ok) API_HEALTH = {...API_HEALTH, ...(await healthResponse.json())};
+    if (actionsResponse.ok) {
+      const payload = await actionsResponse.json();
+      ACTION_MAP = Object.fromEntries((payload.items || []).map(x => [x.record_key, x]));
+      API_HEALTH.persistence = payload.persistence || API_HEALTH.persistence;
+    }
+  } catch (error) {
+    console.warn("Using standalone preview fallback:", error);
+    API_HEALTH = {status:"preview", persistence:"browser"};
+  }
+  updateHeaderStatus();
+  updateProvenanceHeader(fallbackProvenance());
+  refreshLiveProvenance();
+  updateMetrics(summary);
+  renderSourceStrip();
+  renderTable(true);
+}
+bootstrap();
+</script>
+</body>
+</html>

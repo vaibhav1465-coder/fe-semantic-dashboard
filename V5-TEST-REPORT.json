@@ -1,0 +1,66 @@
+{
+  "version": "5.0.0",
+  "generated_at": "2026-07-15T11:38:30Z",
+  "tests": {
+    "ok": true,
+    "summary": "oids a second loader call\n  ---\n  duration_ms: 2.242909\n  type: 'test'\n  ...\n# Subtest: classifies Google NLP sentiment score\nok 6 - classifies Google NLP sentiment score\n  ---\n  duration_ms: 1.09509\n  type: 'test'\n  ...\n# Subtest: extracts recommendation JSON array from dashboard source\nok 7 - extracts recommendation JSON array from dashboard source\n  ---\n  duration_ms: 1.405579\n  type: 'test'\n  ...\n# Subtest: uses WordPress REST when live\nok 8 - uses WordPress REST when live\n  ---\n  duration_ms: 3.312287\n  type: 'test'\n  ...\n# Subtest: falls back to RSS when WordPress fails\nok 9 - falls back to RSS when WordPress fails\n  ---\n  duration_ms: 0.558102\n  type: 'test'\n  ...\n# Subtest: falls back to packaged cache and then last crawl\nok 10 - falls back to packaged cache and then last crawl\n  ---\n  duration_ms: 2.678839\n  type: 'test'\n  ...\n# Subtest: parses RSS 2.0 items\nok 11 - parses RSS 2.0 items\n  ---\n  duration_ms: 70.623777\n  type: 'test'\n  ...\n# Subtest: parses Atom entries\nok 12 - parses Atom entries\n  ---\n  duration_ms: 2.124076\n  type: 'test'\n  ...\n# Subtest: discovers RSS/XML links from FE syndication HTML\nok 13 - discovers RSS/XML links from FE syndication HTML\n  ---\n  duration_ms: 0.509954\n  type: 'test'\n  ...\n# Subtest: classifies sentiment with dashboard thresholds\nok 14 - classifies sentiment with dashboard thresholds\n  ---\n  duration_ms: 1.085952\n  type: 'test'\n  ...\n# Subtest: explains high-magnitude neutral sentiment as balanced or mixed\nok 15 - explains high-magnitude neutral sentiment as balanced or mixed\n  ---\n  duration_ms: 0.619639\n  type: 'test'\n  ...\n# Subtest: uses sentence-level evidence when available\nok 16 - uses sentence-level evidence when available\n  ---\n  duration_ms: 0.423737\n  type: 'test'\n  ...\n# Subtest: dashboard has a dedicated anchor recommendation column\nok 17 - dashboard has a dedicated anchor recommendation column\n  ---\n  duration_ms: 1.46769\n  type: 'test'\n  ...\n# Subtest: expanded and empty rows span all eight columns\nok 18 - expanded and empty rows span all eight columns\n  ---\n  duration_ms: 0.368008\n  type: 'test'\n  ...\n# Subtest: dashboard loads health and provenance APIs without changing the approved layout\nok 19 - dashboard loads health and provenance APIs without changing the approved layout\n  ---\n  duration_ms: 1.261011\n  type: 'test'\n  ...\n# Subtest: expanded API status shows NLP, source and cache provenance\nok 20 - expanded API status shows NLP, source and cache provenance\n  ---\n  duration_ms: 0.387015\n  type: 'test'\n  ...\n# Subtest: dashboard shows live provenance header and fallback labels\nok 21 - dashboard shows live provenance header and fallback labels\n  ---\n  duration_ms: 1.574565\n  type: 'test'\n  ...\n# Subtest: success metrics are deferred from production UI\nok 22 - success metrics are deferred from production UI\n  ---\n  duration_ms: 0.393116\n  type: 'test'\n  ...\n# Subtest: normalizes tracking parameters and trailing slash\nok 23 - normalizes tracking parameters and trailing slash\n  ---\n  duration_ms: 1.633571\n  type: 'test'\n  ...\n# Subtest: passes a valid newer-to-older recommendation\nok 24 - passes a valid newer-to-older recommendation\n  ---\n  duration_ms: 3.10466\n  type: 'test'\n  ...\n# Subtest: rejects same source and target URL\nok 25 - rejects same source and target URL\n  ---\n  duration_ms: 0.446855\n  type: 'test'\n  ...\n# Subtest: flags newer target article\nok 26 - flags newer target article\n  ---\n  duration_ms: 1.237625\n  type: 'test'\n  ...\n# Subtest: detects duplicate pairs\nok 27 - detects duplicate pairs\n  ---\n  duration_ms: 0.673064\n  type: 'test'\n  ...\n# Subtest: normalizes a WordPress REST post\nok 28 - normalizes a WordPress REST post\n  ---\n  duration_ms: 2.977786\n  type: 'test'\n  ...\n# Subtest: has a configurable default WordPress posts endpoint\nok 29 - has a configurable default WordPress posts endpoint\n  ---\n  duration_ms: 0.644435\n  type: 'test'\n  ...\n1..29\n# tests 29\n# suites 0\n# pass 29\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 649.716756\n"
+  },
+  "verification": {
+    "ok": true,
+    "summary": "\n> fe-semantic-interlinking-operational@5.0.0 verify\n> node scripts/verify.mjs\n\nPASS index.html\nPASS api/health.js\nPASS api/recommendations.js\nPASS api/actions.js\nPASS api/self-test.js\nPASS api/content.js\nPASS api/nlp.js\nPASS api/sources.js\nPASS api/cache.js\nPASS api/cron-refresh.js\nPASS api/provenance.js\nPASS lib/cache.js\nPASS lib/rss.js\nPASS lib/wordpress.js\nPASS lib/content-sources.js\nPASS lib/google-nlp.js\nPASS lib/sentiment-reasoning.js\nPASS lib/provenance.js\nPASS data/recommendations.json\nPASS data/content-cache.json\nPASS supabase/001_editorial_actions.sql\nPASS supabase/002_semantic_cache.sql\nPASS vercel.json\nINFO records=16 invalid=0 warnings=16\nPASS UI anchor recommendation column\nPASS UI live source provenance API\nPASS UI WordPress REST status\nPASS UI RSS status\nPASS UI NLP cache provenance\nPASS UI provenance header\nPASS UI live provenance API\nPASS UI RSS fallback label\nPASS UI fallback cache label\nPASS UI last crawl label\nPASS UI sentiment reasoning\nPASS no secret in index: SUPABASE_SERVICE_ROLE_KEY\nPASS no secret in index: GOOGLE_SERVICE_ACCOUNT_JSON\nPASS no secret in index: BEGIN PRIVATE KEY\nPASS Vercel cron refresh\nPASS operational package verification complete\n"
+  },
+  "syntax": {
+    "lib/provenance.js": {
+      "ok": true,
+      "error": ""
+    },
+    "lib/google-nlp.js": {
+      "ok": true,
+      "error": ""
+    },
+    "api/provenance.js": {
+      "ok": true,
+      "error": ""
+    },
+    "api/health.js": {
+      "ok": true,
+      "error": ""
+    },
+    "api/nlp.js": {
+      "ok": true,
+      "error": ""
+    },
+    "scripts/local-server.mjs": {
+      "ok": true,
+      "error": ""
+    }
+  },
+  "smoke": {
+    "/": {
+      "ok": true,
+      "status": 200
+    },
+    "/api/health": {
+      "ok": true,
+      "status": 200
+    },
+    "/api/provenance": {
+      "ok": true,
+      "status": 200
+    },
+    "/api/recommendations": {
+      "ok": true,
+      "status": 200
+    },
+    "/api/nlp": {
+      "ok": true,
+      "status": 200
+    }
+  },
+  "deployment_status": {
+    "code_ready": true,
+    "git_push_executed": false,
+    "vercel_deployment_executed": false,
+    "blocker": "No authenticated GitHub remote or Vercel session is available inside this execution environment."
+  }
+}

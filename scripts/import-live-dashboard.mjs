@@ -1,0 +1,11 @@
+import fs from "node:fs";
+import { extractRecommendationsFromHtml } from "../lib/live-import.js";
+const url=process.argv[2] || process.env.FE_LIVE_DASHBOARD_URL || "https://fe-semantic-interlinking.vercel.app/";
+console.log(`Downloading live dashboard: ${url}`);
+const response=await fetch(url,{headers:{"User-Agent":"Mozilla/5.0 FE-Semantic-Importer/1.0"},redirect:"follow"});
+if(!response.ok) throw new Error(`Live dashboard download failed: ${response.status}`);
+const html=await response.text();
+const items=extractRecommendationsFromHtml(html);
+fs.mkdirSync("input",{recursive:true});
+fs.writeFileSync("input/recommendations.json",JSON.stringify({source:url,imported_at:new Date().toISOString(),items},null,2));
+console.log(`Imported ${items.length} records to input/recommendations.json`);

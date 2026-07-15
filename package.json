@@ -1,0 +1,22 @@
+{
+  "name": "fe-semantic-interlinking-operational",
+  "version": "5.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "verify": "node scripts/verify.mjs",
+    "refresh": "node scripts/process-recommendations.mjs",
+    "check": "npm test && npm run verify",
+    "import-live": "node scripts/import-live-dashboard.mjs",
+    "refresh-live": "npm run import-live && npm run refresh",
+    "refresh-force": "node scripts/process-recommendations.mjs --force-sources --force-nlp",
+    "sources:test": "node scripts/test-live-sources.mjs",
+    "self-check": "npm test && npm run verify && npm run sources:test:strict",
+    "sources:test:strict": "node scripts/test-live-sources.mjs --strict",
+    "dev": "node scripts/local-server.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
