@@ -169,3 +169,12 @@ The stakeholder success-metrics page is intentionally deferred and is not includ
 ## v5.2 live article list
 
 The dashboard requests `/api/live-recommendations?limit=60&candidates=500&min_suggestions=2&max_suggestions=3`. It checks up to 500 recent Financial Express WordPress posts and returns the latest 50–60 eligible source articles with two or three qualified internal linking suggestions each. A suggestion is excluded unless it contains a valid target URL, anchor text, placement guidance and a clear reason. The bundled processed crawl remains the safe fallback when the live WordPress request is unavailable.
+
+
+## v5.8 Google entity coverage
+
+When an expanded recommendation has a reliable named entity shared by both articles, the dashboard labels it **Shared by both**.
+
+When Google NLP completes but no reliable shared entity exists, the dashboard now shows the strongest filtered named entities from the **Source article** and the **Suggested article** separately. These article-level entities are not presented as shared evidence and are not added to the match score.
+
+The UI loads entity requests sequentially per expanded article and retries one transient failure once. Generic words, years, dates, prices and numbers remain excluded.

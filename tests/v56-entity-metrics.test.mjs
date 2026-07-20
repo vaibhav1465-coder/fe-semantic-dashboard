@@ -13,10 +13,11 @@ test("filters years, dates, numbers and other non-editorial entities", () => {
   assert.equal(isMeaningfulEditorialEntity({ name: "FIFA World Cup", type: "EVENT" }), true);
 });
 
-test("dashboard displays only shared meaningful Google entities", () => {
-  assert.match(html, /detail\.hidden=true/);
-  assert.doesNotMatch(html, /No meaningful shared Google entities were found for this article pair/);
-  assert.doesNotMatch(html, /Key entities from the two articles are shown below/);
+test("dashboard distinguishes shared and article-level meaningful Google entities", () => {
+  assert.match(html, /Shared by both/);
+  assert.match(html, /Source article/);
+  assert.match(html, /Suggested article/);
+  assert.doesNotMatch(html, /detail\.hidden=true/);
 });
 
 test("dashboard uses clear team-facing metrics and removes rejected-match controls", () => {

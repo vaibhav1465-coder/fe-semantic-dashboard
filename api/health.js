@@ -14,7 +14,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       status: "healthy",
       service: "fe-semantic-interlinking",
-      version: "5.7.0",
+      version: "5.8.0",
       batch_id: data.batch_id || null,
       generated_at: data.generated_at || null,
       recommendations: data.summary,

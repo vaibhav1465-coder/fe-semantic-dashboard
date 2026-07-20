@@ -297,7 +297,7 @@ export function sharedEntities(sourceEntities = [], targetEntities = []) {
   return selected.map(({ rank, ...entity }) => entity);
 }
 
-function meaningfulEntityList(entities = []) {
+export function meaningfulEntityList(entities = []) {
   return entities
     .filter(isMeaningfulEditorialEntity)
     .sort((a, b) => entityRank(b) - entityRank(a))
@@ -341,14 +341,15 @@ export default async function handler(req, res) {
     res.setHeader("Cache-Control", force ? "no-store" : "s-maxage=3600, stale-while-revalidate=86400");
     return res.status(200).json({
       status,
-      entity_quality_version: "5.7",
+      entity_quality_version: "5.8",
       shared_entities: shared,
       source_entities: meaningfulEntityList(sourceNlp.entities),
       target_entities: meaningfulEntityList(targetNlp.entities),
+      entity_display_mode: shared.length ? "shared" : "article-level",
       analyzed_at: new Date().toISOString(),
       detail: shared.length
         ? "Meaningful shared Google entities were matched across the two article pages."
-        : "Google NLP completed, but no reliable shared named entity was found for this article pair.",
+        : "Google NLP completed. No reliable shared named entity was found, so the response includes the strongest named entities from each article separately.",
       google_nlp: googleNlpDiagnostics()
     });
   } catch (error) {

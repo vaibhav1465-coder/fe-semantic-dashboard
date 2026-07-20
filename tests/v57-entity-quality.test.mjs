@@ -61,8 +61,9 @@ test("returns FIFA named entities while excluding history and years", () => {
   assert.ok(!names.some(name => /history|2026/i.test(name)));
 });
 
-test("dashboard bypasses old entity responses and hides empty entity evidence", () => {
-  assert.match(html, /entity_version=57/);
-  assert.match(html, /detail\.hidden=true/);
-  assert.doesNotMatch(html, /No meaningful shared Google entities were found for this article pair/);
+test("dashboard bypasses old entity responses and keeps honest entity coverage", () => {
+  assert.match(html, /entity_version=58/);
+  assert.match(html, /Source article/);
+  assert.match(html, /Suggested article/);
+  assert.doesNotMatch(html, /detail\.hidden=true/);
 });

@@ -63,7 +63,11 @@ const htmlChecks = [
   ["details class=\"article-row\"", "URL dropdown rows"],
   ["Only article-to-article links are shown", "complete quality rule"],
   ["Load 10 more articles", "10-article load-more control"],
-  ["Qualified article URLs", "clear metrics label"]
+  ["Qualified article URLs", "clear metrics label"],
+  ["Shared by both", "shared Google entity label"],
+  ["Source article", "source article entity fallback"],
+  ["Suggested article", "suggested article entity fallback"],
+  ["entity_version=58", "fresh entity response version"]
 ];
 for (const [needle, label] of htmlChecks) {
   const ok = html.includes(needle);

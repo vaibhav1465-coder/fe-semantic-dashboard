@@ -83,7 +83,7 @@ main{max-width:1500px;margin:auto;padding:25px 28px 60px}
 .suggestion-number{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;background:#f1ece6;color:#4d4d4d;font-size:9px;font-weight:900}
 .target-url{display:block;color:#a60f15;font-size:10px;font-weight:850;word-break:break-all;text-decoration:none}.target-url:hover{text-decoration:underline}.target-title{margin:4px 0 0;font:700 14px/1.35 Georgia,serif}.score-pill{padding:6px 8px;border-radius:999px;background:#f2f6fb;border:1px solid #cbd8e7;color:#315b88;font-size:9px;font-weight:900;white-space:nowrap}
 .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;margin:13px 0 0 45px}.detail{min-width:0}.detail.full{grid-column:1/-1}.label{display:block;text-transform:uppercase;letter-spacing:.09em;color:#858a90;font-size:8px;font-weight:900;margin-bottom:4px}.value{font-size:10px;line-height:1.5;color:#333}.anchor{font-weight:850;color:#8c1116}.topics{display:flex;gap:5px;flex-wrap:wrap}.topic{padding:4px 7px;border-radius:999px;background:#f3f0ec;border:1px solid #e1dbd4;font-size:8px;font-weight:800;color:#555}
-.suggestion-footer{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin:12px 0 0 45px;padding-top:10px;border-top:1px solid #eee8e1}.score-explanation{padding:8px 10px;border-radius:9px;background:#f3f7fb;border:1px solid #d6e1ed;color:#35536f}.score-equation{font-size:9px;font-weight:800;line-height:1.45;color:#234869;margin:0}.entity-note{width:100%;font-size:8px;color:#777d84;line-height:1.4;margin-bottom:4px}.google-entity{background:#eef6ff;border-color:#c9dcef;color:#315b88}
+.suggestion-footer{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin:12px 0 0 45px;padding-top:10px;border-top:1px solid #eee8e1}.score-explanation{padding:8px 10px;border-radius:9px;background:#f3f7fb;border:1px solid #d6e1ed;color:#35536f}.score-equation{font-size:9px;font-weight:800;line-height:1.45;color:#234869;margin:0}.entity-note{width:100%;font-size:8px;color:#777d84;line-height:1.4;margin-bottom:4px}.google-entity{background:#eef6ff;border-color:#c9dcef;color:#315b88}.entity-groups{display:flex;flex-direction:column;gap:6px}.entity-group{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.entity-mini-label{font-size:7px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#6d7782;min-width:92px}.entity-empty{font-size:8px;color:#6d7782;line-height:1.45}
 .actions{display:flex;gap:6px;flex-wrap:wrap}.action{padding:6px 8px;border:1px solid #d9d2ca;border-radius:8px;background:#fff;font-size:8px;font-weight:850;cursor:pointer}.action:hover,.action.active{border-color:#d89093;background:#fff3f3;color:#991117}
 .empty,.loading{padding:50px 20px;text-align:center;color:var(--muted);font-size:12px}.error-note{margin-bottom:12px;padding:11px 13px;border:1px solid #efbaba;border-radius:11px;background:#fff1f1;color:#8f1717;font-size:10px;line-height:1.45;display:none}
 .load-more-wrap{display:flex;justify-content:center;margin-top:16px}.load-more-wrap[hidden]{display:none}.load-more-button{min-width:210px}.footer-note{margin-top:14px;color:#777d84;font-size:9px;line-height:1.5;text-align:center}
@@ -280,8 +280,21 @@ function sharedTopicsHtml(row){return chipsHtml(sharedTopics(row),"topic")}
 
 function googleEntitiesHtml(row){
   const stored=storedGoogleEntities(row);
-  if(stored.length)return chipsHtml(stored,"topic google-entity");
-  return `<div class="topics google-entities" data-source-url="${esc(row["Source URL"])}" data-target-url="${esc(row["Target URL"])}"><span class="value">Google entities will load when this article row is expanded.</span></div>`;
+  if(stored.length)return `<div class="entity-groups"><div class="entity-group"><span class="entity-mini-label">Shared by both</span>${entityChipList(stored)}</div></div>`;
+  return `<div class="google-entities" data-source-url="${esc(row["Source URL"])}" data-target-url="${esc(row["Target URL"])}"><span class="value">Google entities will load when this article row is expanded.</span></div>`;
+}
+
+function entityNames(items,limit=5){
+  return [...new Set((items||[]).map(item=>typeof item==="string"?item:item?.name).map(normalized).filter(Boolean))].slice(0,limit);
+}
+
+function entityChipList(items){
+  return entityNames(items).map(value=>`<span class="topic google-entity">${esc(value)}</span>`).join("");
+}
+
+function entityGroupHtml(label,items){
+  const names=entityNames(items);
+  return names.length?`<div class="entity-group"><span class="entity-mini-label">${esc(label)}</span>${entityChipList(names)}</div>`:"";
 }
 
 const SCORE_CRITERIA=[
@@ -379,12 +392,29 @@ function renderDashboard(resetLimit=false){
 
 function loadMoreArticles(){VISIBLE_ARTICLE_LIMIT+=ARTICLE_PAGE_SIZE;renderDashboard(false)}
 
+async function fetchPairEntityPayload(sourceUrl,targetUrl,force=false){
+  const suffix=force?"&force=1":"";
+  try{
+    const response=await fetch(`/api/pair-entities?source_url=${encodeURIComponent(sourceUrl)}&target_url=${encodeURIComponent(targetUrl)}&entity_version=58${suffix}`,{cache:force?"no-store":"default"});
+    const payload=await response.json();
+    if(!response.ok)throw Object.assign(new Error(payload.detail||payload.error||"Google entities are unavailable"),{google_nlp:payload.google_nlp||null});
+    return payload;
+  }catch(error){
+    return {status:"failed",error:error.message,google_nlp:error.google_nlp||null,shared_entities:[],source_entities:[],target_entities:[]};
+  }
+}
+
 async function entityRequest(sourceUrl,targetUrl){
   const key=`${sourceUrl}||${targetUrl}`;
   if(!ENTITY_REQUEST_CACHE.has(key)){
-    const promise=fetch(`/api/pair-entities?source_url=${encodeURIComponent(sourceUrl)}&target_url=${encodeURIComponent(targetUrl)}&entity_version=57`,{cache:"default"})
-      .then(async response=>{const payload=await response.json();if(!response.ok){const error=new Error(payload.detail||payload.error||"Google entities are unavailable");error.google_nlp=payload.google_nlp||null;throw error}return payload})
-      .catch(error=>({status:"failed",error:error.message,google_nlp:error.google_nlp||null,shared_entities:[],source_entities:[],target_entities:[]}));
+    const promise=(async()=>{
+      let payload=await fetchPairEntityPayload(sourceUrl,targetUrl,false);
+      if(payload.status==="failed"&&payload.google_nlp?.configured!==false){
+        await new Promise(resolve=>setTimeout(resolve,350));
+        payload=await fetchPairEntityPayload(sourceUrl,targetUrl,true);
+      }
+      return payload;
+    })();
     ENTITY_REQUEST_CACHE.set(key,promise);
   }
   return ENTITY_REQUEST_CACHE.get(key);
@@ -392,21 +422,28 @@ async function entityRequest(sourceUrl,targetUrl){
 
 async function loadGoogleEntities(container){
   const blocks=[...container.querySelectorAll(".google-entities:not([data-loaded='true'])")];
-  await Promise.all(blocks.map(async block=>{
+  for(const block of blocks){
     block.dataset.loaded="true";
     block.innerHTML='<span class="value">Loading Google entities…</span>';
     const payload=await entityRequest(block.dataset.sourceUrl,block.dataset.targetUrl);
-    const shared=(payload.shared_entities||[]).map(item=>item.name).filter(Boolean);
-    if(shared.length){block.innerHTML=chipsHtml(shared,"topic google-entity");return}
+    const shared=entityNames(payload.shared_entities,6);
+    const source=entityNames(payload.source_entities,5).filter(name=>!shared.includes(name));
+    const target=entityNames(payload.target_entities,5).filter(name=>!shared.includes(name));
+    if(shared.length){
+      block.innerHTML=`<div class="entity-groups">${entityGroupHtml("Shared by both",shared)}</div>`;
+      continue;
+    }
+    if(source.length||target.length){
+      block.innerHTML=`<div class="entity-groups">${entityGroupHtml("Source article",source)}${entityGroupHtml("Suggested article",target)}</div>`;
+      continue;
+    }
     const localMissing=location.hostname==="localhost"&&payload.google_nlp?.configured===false;
     if(payload.status!=="failed"){
-      const detail=block.closest(".detail");
-      if(detail)detail.hidden=true;
-      else block.innerHTML="";
-      return;
+      block.innerHTML='<span class="entity-empty">Google NLP completed but did not find a reliable named entity in either article.</span>';
+      continue;
     }
-    block.innerHTML=`<span class="value">${esc(localMissing?"This local preview has no Google NLP credential. Run setup-local-google-nlp.ps1, restart npm run dev, and expand the row again.":(payload.error||"Google entities are not available for this recommendation."))}</span>`;
-  }));
+    block.innerHTML=`<span class="value">${esc(localMissing?"This local preview has no Google NLP credential. Run setup-local-google-nlp.ps1, restart npm run dev, and expand the row again.":(payload.error||"Google entities could not be loaded for this recommendation."))}</span>`;
+  }
 }
 
 function handleArticleToggle(event){const details=event.currentTarget;if(details.open)loadGoogleEntities(details)}
