@@ -382,7 +382,7 @@ function loadMoreArticles(){VISIBLE_ARTICLE_LIMIT+=ARTICLE_PAGE_SIZE;renderDashb
 async function entityRequest(sourceUrl,targetUrl){
   const key=`${sourceUrl}||${targetUrl}`;
   if(!ENTITY_REQUEST_CACHE.has(key)){
-    const promise=fetch(`/api/pair-entities?source_url=${encodeURIComponent(sourceUrl)}&target_url=${encodeURIComponent(targetUrl)}`,{cache:"default"})
+    const promise=fetch(`/api/pair-entities?source_url=${encodeURIComponent(sourceUrl)}&target_url=${encodeURIComponent(targetUrl)}&entity_version=57`,{cache:"default"})
       .then(async response=>{const payload=await response.json();if(!response.ok){const error=new Error(payload.detail||payload.error||"Google entities are unavailable");error.google_nlp=payload.google_nlp||null;throw error}return payload})
       .catch(error=>({status:"failed",error:error.message,google_nlp:error.google_nlp||null,shared_entities:[],source_entities:[],target_entities:[]}));
     ENTITY_REQUEST_CACHE.set(key,promise);
@@ -399,7 +399,12 @@ async function loadGoogleEntities(container){
     const shared=(payload.shared_entities||[]).map(item=>item.name).filter(Boolean);
     if(shared.length){block.innerHTML=chipsHtml(shared,"topic google-entity");return}
     const localMissing=location.hostname==="localhost"&&payload.google_nlp?.configured===false;
-    if(payload.status!=="failed"){block.innerHTML='<span class="value">No meaningful shared Google entities were found for this article pair.</span>';return}
+    if(payload.status!=="failed"){
+      const detail=block.closest(".detail");
+      if(detail)detail.hidden=true;
+      else block.innerHTML="";
+      return;
+    }
     block.innerHTML=`<span class="value">${esc(localMissing?"This local preview has no Google NLP credential. Run setup-local-google-nlp.ps1, restart npm run dev, and expand the row again.":(payload.error||"Google entities are not available for this recommendation."))}</span>`;
   }));
 }

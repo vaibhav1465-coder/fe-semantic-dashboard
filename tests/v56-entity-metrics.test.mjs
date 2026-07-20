@@ -14,7 +14,8 @@ test("filters years, dates, numbers and other non-editorial entities", () => {
 });
 
 test("dashboard displays only shared meaningful Google entities", () => {
-  assert.match(html, /No meaningful shared Google entities were found for this article pair/);
+  assert.match(html, /detail\.hidden=true/);
+  assert.doesNotMatch(html, /No meaningful shared Google entities were found for this article pair/);
   assert.doesNotMatch(html, /Key entities from the two articles are shown below/);
 });
 
