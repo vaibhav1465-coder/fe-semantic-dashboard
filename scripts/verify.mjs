@@ -61,9 +61,9 @@ const htmlChecks = [
   ["Last Crawl", "last crawl label"],
   ["Contextual, relevant, and meaningful for readers", "editorial reader-value language"],
   ["details class=\"article-row\"", "URL dropdown rows"],
-  ["A page is recommended only when", "missing-detail exclusion rule"],
+  ["Only article-to-article links are shown", "complete quality rule"],
   ["Load 10 more articles", "10-article load-more control"],
-  ["All results", "corrected results filter label"]
+  ["Qualified article URLs", "clear metrics label"]
 ];
 for (const [needle, label] of htmlChecks) {
   const ok = html.includes(needle);

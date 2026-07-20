@@ -61,5 +61,5 @@ test("live recommendation service does not lower the quality threshold to reach 
   const source = fs.readFileSync("lib/live-recommendations.js", "utf8");
   assert.doesNotMatch(source, /minScore - 4|minScore - 8|thresholds =/);
   assert.match(source, /quality_threshold_fixed = true/);
-  assert.match(source, /FE_LIVE_RECOMMENDATION_MIN_SCORE \|\| 40/);
+  assert.match(source, /FE_LIVE_RECOMMENDATION_MIN_SCORE \|\| 50/);
 });

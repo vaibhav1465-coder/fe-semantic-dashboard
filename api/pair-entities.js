@@ -2,6 +2,25 @@ import { isFinancialExpressArticleUrl } from "../lib/article-url.js";
 import { resolveArticle } from "../lib/content-sources.js";
 import { analyzeEntities, googleNlpDiagnostics } from "../lib/google-nlp.js";
 
+
+const NON_EDITORIAL_ENTITY_TYPES = new Set(["DATE", "NUMBER", "PRICE", "PHONE_NUMBER", "ADDRESS"]);
+const GENERIC_ENTITY_NAMES = new Set(["year", "month", "day", "today", "tomorrow", "yesterday", "article", "news", "report"]);
+
+export function isMeaningfulEditorialEntity(entity = {}) {
+  const name = String(entity.name || "").replace(/\s+/g, " ").trim();
+  const type = String(entity.type || "OTHER").toUpperCase();
+  const normalized = name.toLowerCase();
+
+  if (!name || name.length < 2 || name.length > 100) return false;
+  if (NON_EDITORIAL_ENTITY_TYPES.has(type)) return false;
+  if (GENERIC_ENTITY_NAMES.has(normalized)) return false;
+  if (/^\d{1,4}$/.test(normalized)) return false;
+  if (/^(19|20)\d{2}$/.test(normalized)) return false;
+  if (/^\d+(?:[.,]\d+)?%?$/.test(normalized)) return false;
+  if (/^\d{1,2}[\/-]\d{1,2}(?:[\/-]\d{2,4})?$/.test(normalized)) return false;
+  return true;
+}
+
 function analysisText(article = {}) {
   const text = [article.title, article.description, article.articleBody]
     .filter(Boolean)
@@ -24,6 +43,7 @@ function normalizedEntityName(value = "") {
 function sharedEntities(sourceEntities = [], targetEntities = []) {
   const targetMap = new Map();
   for (const entity of targetEntities) {
+    if (!isMeaningfulEditorialEntity(entity)) continue;
     const key = normalizedEntityName(entity.name);
     if (key) targetMap.set(key, entity);
   }
@@ -31,6 +51,7 @@ function sharedEntities(sourceEntities = [], targetEntities = []) {
   const shared = [];
   const seen = new Set();
   for (const entity of sourceEntities) {
+    if (!isMeaningfulEditorialEntity(entity)) continue;
     const key = normalizedEntityName(entity.name);
     const target = targetMap.get(key);
     if (!key || !target || seen.has(key)) continue;
@@ -81,8 +102,8 @@ export default async function handler(req, res) {
     return res.status(200).json({
       status,
       shared_entities: shared,
-      source_entities: sourceNlp.entities.slice(0, 8),
-      target_entities: targetNlp.entities.slice(0, 8),
+      source_entities: sourceNlp.entities.filter(isMeaningfulEditorialEntity).slice(0, 8),
+      target_entities: targetNlp.entities.filter(isMeaningfulEditorialEntity).slice(0, 8),
       analyzed_at: new Date().toISOString(),
       detail: "Google Cloud Natural Language entities were extracted from the two article pages.",
       google_nlp: googleNlpDiagnostics()

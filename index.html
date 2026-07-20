@@ -54,14 +54,14 @@ main{max-width:1500px;margin:auto;padding:25px 28px 60px}
 .intro-panel h2{font:700 22px Georgia,serif;margin:0 0 7px}.intro-panel p,.quality-rule p{margin:0;color:var(--muted);font-size:11px;line-height:1.55}
 .quality-rule{background:linear-gradient(145deg,#181818,#2c2c2c);color:#fff;box-shadow:0 18px 42px rgba(0,0,0,.18)}
 .quality-rule strong{display:block;font-size:12px;margin-bottom:7px}.quality-rule p{color:#ddd}
-.metrics{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:20px}
+.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
 .metric{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:17px;background:linear-gradient(145deg,#fff,#faf8f5);padding:16px;box-shadow:var(--shadow);transform:perspective(800px) rotateX(1deg);transition:.2s ease}
 .metric:hover{transform:perspective(800px) translateY(-3px) rotateX(0);box-shadow:0 24px 58px rgba(31,24,18,.14)}
 .metric:after{content:"";position:absolute;width:70px;height:70px;border-radius:50%;right:-24px;bottom:-28px;background:rgba(215,25,32,.05)}
 .metric-label{text-transform:uppercase;letter-spacing:.1em;color:#787f88;font-size:9px;font-weight:900}
 .metric-value{font:800 29px Georgia,serif;margin-top:8px;line-height:1}.metric-value.green{color:var(--green)}.metric-value.red{color:var(--fe-red)}.metric-value.blue{color:var(--blue)}
 .metric-note{margin-top:6px;color:#8a8f95;font-size:9px}
-.controls{display:grid;grid-template-columns:minmax(260px,1.5fr) repeat(2,minmax(150px,.55fr)) auto;gap:10px;border:1px solid var(--line);border-radius:16px;background:#fff;padding:12px;box-shadow:var(--shadow);margin-bottom:21px}
+.controls{display:grid;grid-template-columns:minmax(260px,1.5fr) minmax(170px,.6fr) auto;gap:10px;border:1px solid var(--line);border-radius:16px;background:#fff;padding:12px;box-shadow:var(--shadow);margin-bottom:21px}
 .controls input,.controls select{width:100%;padding:11px 12px;border:1px solid #d9d2ca;border-radius:10px;background:#fbfaf8;color:#222;font-size:11px;outline:none}
 .controls input:focus,.controls select:focus{border-color:var(--fe-red);box-shadow:0 0 0 3px rgba(215,25,32,.08)}
 .section-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;margin:0 0 12px}
@@ -100,7 +100,7 @@ main{max-width:1500px;margin:auto;padding:25px 28px 60px}
       <div>
         <div class="eyebrow">Financial Express newsroom tool</div>
         <h1>Internal Linking Intelligence</h1>
-        <p class="header-copy">Review 50–60 recent Financial Express articles. Each article has two or three qualified internal linking suggestions.</p>
+        <p class="header-copy">Review up to 60 recent Financial Express article URLs. Every displayed article has two or three qualified internal linking suggestions.</p>
       </div>
     </div>
     <div class="header-actions">
@@ -131,26 +131,20 @@ main{max-width:1500px;margin:auto;padding:25px 28px 60px}
     </div>
     <div class="quality-rule">
       <strong>Quality rule</strong>
-      <p>A page is recommended only when the system finds specific anchor text, a clear placement, and a meaningful reason for readers.</p>
+      <p>Only article-to-article links are shown. Each suggestion must score at least 50/100, share two meaningful topics, link a newer article to an older article, and include specific anchor text, placement, and a clear reason.</p>
     </div>
   </section>
 
   <section class="metrics">
-    <div class="metric"><div class="metric-label">Latest articles</div><div class="metric-value blue" id="metricSources">0</div><div class="metric-note">target: 50–60 eligible articles</div></div>
-    <div class="metric"><div class="metric-label">Qualified suggestions</div><div class="metric-value" id="metricApproved">0</div><div class="metric-note">shown by default</div></div>
-    <div class="metric"><div class="metric-label">Rejected matches</div><div class="metric-value red" id="metricRejected">0</div><div class="metric-note">available through the status filter</div></div>
-    <div class="metric"><div class="metric-label">Average per article</div><div class="metric-value green" id="metricAveragePerSource">0</div><div class="metric-note">qualified suggestions</div></div>
-    <div class="metric"><div class="metric-label">Average match score</div><div class="metric-value" id="metricAverageScore">0</div><div class="metric-note">qualified suggestions only</div></div>
-    <div class="metric"><div class="metric-label">Candidate pool</div><div class="metric-value" id="metricPool">0</div><div class="metric-note">recent FE articles checked</div></div>
+    <div class="metric"><div class="metric-label">Qualified article URLs</div><div class="metric-value blue" id="metricSources">0</div><div class="metric-note">latest source articles that passed every quality check</div></div>
+    <div class="metric"><div class="metric-label">Recommended links</div><div class="metric-value" id="metricApproved">0</div><div class="metric-note">total qualified suggestions across those article URLs</div></div>
+    <div class="metric"><div class="metric-label">Links per article</div><div class="metric-value green" id="metricAveragePerSource">0</div><div class="metric-note">recommended links divided by qualified article URLs</div></div>
+    <div class="metric"><div class="metric-label">Average match score</div><div class="metric-value" id="metricAverageScore">0</div><div class="metric-note">average score of the displayed recommendations</div></div>
+    <div class="metric"><div class="metric-label">Articles checked</div><div class="metric-value" id="metricPool">0</div><div class="metric-note">recent FE article pages checked before scoring</div></div>
   </section>
 
   <section class="controls">
     <input id="searchInput" type="search" placeholder="Search article URLs, titles, topics, anchor text, or reasons">
-    <select id="statusFilter">
-      <option value="Approved" selected>Qualified suggestions</option>
-      <option value="Rejected">Rejected matches</option>
-      <option value="">All results</option>
-    </select>
     <select id="sortSelect">
       <option value="latest">Latest articles first</option>
       <option value="score">Highest match score</option>
@@ -265,9 +259,8 @@ function matchesSearch(row,query){
 
 function groupedRows(){
   const query=document.getElementById("searchInput").value.trim().toLowerCase();
-  const status=document.getElementById("statusFilter").value;
   const sort=document.getElementById("sortSelect").value;
-  CURRENT_ROWS=ALL_DATA.filter(row=>isDisplayable(row)&&matchesSearch(row,query)&&(!status||row.Status===status));
+  CURRENT_ROWS=ALL_DATA.filter(row=>row.Status==="Approved"&&isDisplayable(row)&&matchesSearch(row,query));
   const map=new Map();
   for(const row of CURRENT_ROWS){const key=row["Source URL"];if(!map.has(key))map.set(key,[]);map.get(key).push(row)}
   let groups=[...map.entries()].map(([url,items])=>({url,items,title:items[0]?.["Source Title"]||url,latest:new Date(dateValue(items[0])||0).getTime()||0}));
@@ -405,10 +398,9 @@ async function loadGoogleEntities(container){
     const payload=await entityRequest(block.dataset.sourceUrl,block.dataset.targetUrl);
     const shared=(payload.shared_entities||[]).map(item=>item.name).filter(Boolean);
     if(shared.length){block.innerHTML=chipsHtml(shared,"topic google-entity");return}
-    const combined=[...(payload.source_entities||[]),...(payload.target_entities||[])].map(item=>item.name).filter(Boolean);
-    const unique=[...new Set(combined)].slice(0,6);
-    if(unique.length){block.innerHTML=`<div class="entity-note">No shared Google entities were found. Key entities from the two articles are shown below.</div>${chipsHtml(unique,"topic google-entity")}`;return}
-    const localMissing=location.hostname==="localhost"&&payload.google_nlp?.configured===false;block.innerHTML=`<span class="value">${esc(localMissing?"This local preview has no Google NLP credential. Run setup-local-google-nlp.ps1, restart npm run dev, and expand the row again.":(payload.error||"Google entities are not available for this recommendation."))}</span>`;
+    const localMissing=location.hostname==="localhost"&&payload.google_nlp?.configured===false;
+    if(payload.status!=="failed"){block.innerHTML='<span class="value">No meaningful shared Google entities were found for this article pair.</span>';return}
+    block.innerHTML=`<span class="value">${esc(localMissing?"This local preview has no Google NLP credential. Run setup-local-google-nlp.ps1, restart npm run dev, and expand the row again.":(payload.error||"Google entities are not available for this recommendation."))}</span>`;
   }));
 }
 
@@ -416,12 +408,10 @@ function handleArticleToggle(event){const details=event.currentTarget;if(details
 
 function updateMetrics(){
   const approved=ALL_DATA.filter(row=>row.Status==="Approved"&&isDisplayable(row));
-  const rejected=ALL_DATA.filter(row=>row.Status==="Rejected"&&isDisplayable(row));
   const sources=new Set(approved.map(row=>row["Source URL"]));
   const scores=approved.map(row=>Number(row["Confidence Score"]||0));
   document.getElementById("metricSources").textContent=SUMMARY.sources??sources.size;
   document.getElementById("metricApproved").textContent=SUMMARY.approved??approved.length;
-  document.getElementById("metricRejected").textContent=SUMMARY.rejected??rejected.length;
   document.getElementById("metricAveragePerSource").textContent=SUMMARY.average_suggestions_per_source??(sources.size?(approved.length/sources.size).toFixed(1):0);
   document.getElementById("metricAverageScore").textContent=SUMMARY.avg_score??(scores.length?Math.round(scores.reduce((a,b)=>a+b,0)/scores.length):0);
   document.getElementById("metricPool").textContent=SUMMARY.candidate_pool??0;
@@ -470,9 +460,9 @@ async function bootstrap(force=false){
   catch(error){console.error(error);document.getElementById("articleList").innerHTML='<div class="empty">The dashboard could not load recommendation data. Please refresh the page or check the API status.</div>';document.getElementById("runStatus").textContent="Data unavailable"}
 }
 function reloadLiveData(){ENTITY_REQUEST_CACHE.clear();bootstrap(true)}
-function resetFilters(){document.getElementById("searchInput").value="";document.getElementById("statusFilter").value="Approved";document.getElementById("sortSelect").value="latest";renderDashboard(true)}
+function resetFilters(){document.getElementById("searchInput").value="";document.getElementById("sortSelect").value="latest";renderDashboard(true)}
 function downloadCSV(){const fields=["Source URL","Source Title","Target URL","Target Title","Status","Confidence Score","Match Score Explanation","Anchor Text Suggestion","Link Placement Suggestion","Reason","Shared Topics"];const rows=[fields.join(",")];CURRENT_ROWS.forEach(row=>rows.push(fields.map(field=>'"'+String(row[field]??"").replaceAll('"','""')+'"').join(",")));const blob=new Blob([rows.join("\n")],{type:"text/csv;charset=utf-8"});const url=URL.createObjectURL(blob);const link=document.createElement("a");link.href=url;link.download="fe-internal-link-suggestions.csv";document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url)}
-["searchInput","statusFilter","sortSelect"].forEach(id=>document.getElementById(id).addEventListener(id==="searchInput"?"input":"change",()=>renderDashboard(true)));
+["searchInput","sortSelect"].forEach(id=>document.getElementById(id).addEventListener(id==="searchInput"?"input":"change",()=>renderDashboard(true)));
 bootstrap();
 </script>
 </body>
