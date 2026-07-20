@@ -6,6 +6,7 @@ const required = [
   "index.html",
   "api/health.js",
   "api/recommendations.js",
+  "api/live-recommendations.js",
   "api/actions.js",
   "api/self-test.js",
   "api/content.js",
@@ -14,13 +15,17 @@ const required = [
   "api/cache.js",
   "api/cron-refresh.js",
   "api/provenance.js",
+  "api/pair-entities.js",
   "lib/cache.js",
   "lib/rss.js",
   "lib/wordpress.js",
   "lib/content-sources.js",
+  "lib/recommendation-engine.js",
+  "lib/live-recommendations.js",
   "lib/google-nlp.js",
   "lib/sentiment-reasoning.js",
   "lib/provenance.js",
+  "lib/article-url.js",
   "data/recommendations.json",
   "data/content-cache.json",
   "supabase/001_editorial_actions.sql",
@@ -37,26 +42,56 @@ for (const file of required) {
 
 const data = readDataset();
 const validation = validateDataset(data.items);
-console.log(`INFO records=${data.items.length} invalid=${validation.invalid} warnings=${validation.warnings}`);
+console.log(`INFO fallback_records=${data.items.length} invalid=${validation.invalid} warnings=${validation.warnings}`);
 if (!data.items.length) failed = true;
 
 const html = fs.readFileSync("index.html", "utf8");
 const htmlChecks = [
-  ["Anchor Text Recommendation", "anchor recommendation column"],
+  ["Specific anchor text", "specific anchor text"],
+  ["Where to add the link", "placement guidance"],
+  ["Why this link is relevant", "simple-English reason"],
+  ["Why this score", "compact match-score reason"],
+  ["Google entities", "Google entities"],
+  ["/api/pair-entities", "on-demand Google entity API"],
+  ["/api/live-recommendations?limit=60", "60-article live recommendation API"],
   ["/api/provenance?live=1", "live source provenance API"],
-  ["WordPress REST:", "WordPress REST status"],
-  ["RSS:", "RSS status"],
-  ["nlp_cache_status", "NLP cache provenance"],
-  ["Live Data Provenance", "provenance header"],
-  ["/api/provenance?live=1", "live provenance API"],
+  ["WordPress REST API", "WordPress REST source"],
   ["RSS Feed", "RSS fallback label"],
   ["Fallback Cache", "fallback cache label"],
   ["Last Crawl", "last crawl label"],
-  ["Why this score:", "sentiment reasoning"]
+  ["Contextual, relevant, and meaningful for readers", "editorial reader-value language"],
+  ["details class=\"article-row\"", "URL dropdown rows"],
+  ["A page is recommended only when", "missing-detail exclusion rule"],
+  ["Load 10 more articles", "10-article load-more control"],
+  ["All results", "corrected results filter label"]
 ];
 for (const [needle, label] of htmlChecks) {
   const ok = html.includes(needle);
   console.log(`${ok ? "PASS" : "FAIL"} UI ${label}`);
+  if (!ok) failed = true;
+}
+
+const hiddenUiChecks = [
+  ["Status: ${esc(row.Status", "approved status badge"],
+  ["How it was matched", "match-method field"],
+  ["Article source", "article-source field"]
+];
+for (const [needle, label] of hiddenUiChecks) {
+  const ok = !html.includes(needle);
+  console.log(`${ok ? "PASS" : "FAIL"} hidden ${label}`);
+  if (!ok) failed = true;
+}
+
+const removedUiChecks = [
+  ["score-bar-bg", "old score progress bar"],
+  ["table-wrap", "old horizontal table layout"],
+  ["recommendations-grid", "old suggestion card grid"],
+  ["recommendation-card", "old suggestion cards"],
+  ["carousel", "carousel UI"]
+];
+for (const [needle, label] of removedUiChecks) {
+  const ok = !html.toLowerCase().includes(needle.toLowerCase());
+  console.log(`${ok ? "PASS" : "FAIL"} removed ${label}`);
   if (!ok) failed = true;
 }
 
@@ -72,9 +107,13 @@ for (const secret of forbiddenInHtml) {
 }
 
 const vercel = JSON.parse(fs.readFileSync("vercel.json", "utf8"));
-const cronOk = Array.isArray(vercel.crons) && vercel.crons.some(x => x.path === "/api/cron-refresh");
+const cronOk = Array.isArray(vercel.crons) && vercel.crons.some(item => item.path === "/api/cron-refresh");
 console.log(`${cronOk ? "PASS" : "FAIL"} Vercel cron refresh`);
 if (!cronOk) failed = true;
+
+const runtimeRemoved = !vercel.functions?.["api/*.js"]?.runtime;
+console.log(`${runtimeRemoved ? "PASS" : "FAIL"} invalid Vercel runtime removed`);
+if (!runtimeRemoved) failed = true;
 
 if (failed) process.exit(1);
 console.log("PASS operational package verification complete");

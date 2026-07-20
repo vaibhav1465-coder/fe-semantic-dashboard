@@ -8,3 +8,16 @@ node_modules/
 *.zip
 data/runtime-cache.local.json
 .DS_Store
+.env.*
+!.env.example
+*.pem
+*.p12
+gcp-key.json
+service-account.json
+service_account.json
+*service-account*.json
+*service_account*.json
+credentials.json
+*credentials*.json
+.env.test
+.env.*.local

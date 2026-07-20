@@ -1,5 +1,6 @@
 import { fetchLatestArticles, probeContentSources } from "../lib/content-sources.js";
 import { analyzeText, googleNlpConfigured } from "../lib/google-nlp.js";
+import { getLiveRecommendations } from "../lib/live-recommendations.js";
 
 function authorized(req) {
   const secret = process.env.CRON_SECRET || process.env.REFRESH_SECRET || "";
@@ -13,11 +14,31 @@ export default async function handler(req, res) {
   if (!authorized(req)) return res.status(401).json({ error: "Unauthorized" });
 
   const started = Date.now();
-  const results = { source_probe: null, content: null, nlp: [] };
+  const results = { source_probe: null, content: null, live_recommendations: null, nlp: [] };
   try {
     results.source_probe = await probeContentSources({ force: true });
     const latest = await fetchLatestArticles({ source: "auto", limit: Number(process.env.FE_REFRESH_ARTICLE_LIMIT || 10), force: true });
     results.content = { selected_source: latest.selected_source, cache_status: latest.cache_status, count: latest.items.length };
+
+    try {
+      const live = await getLiveRecommendations({
+        sourceLimit: Number(process.env.FE_LIVE_SOURCE_LIMIT || 60),
+        candidateLimit: Number(process.env.FE_LIVE_CANDIDATE_LIMIT || 500),
+        minSuggestions: 2,
+        maxSuggestions: 3,
+        force: true
+      });
+      results.live_recommendations = {
+        status: "ready",
+        sources: live.summary?.sources || 0,
+        approved: live.summary?.approved || 0,
+        rejected: live.summary?.rejected || 0,
+        candidate_pool: live.summary?.candidate_pool || 0,
+        generated_at: live.generated_at
+      };
+    } catch (error) {
+      results.live_recommendations = { status: "failed", error: error.message };
+    }
 
     if (googleNlpConfigured()) {
       const warmLimit = Math.max(0, Math.min(10, Number(process.env.GOOGLE_NLP_WARM_LIMIT || 3)));

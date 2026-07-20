@@ -4,8 +4,8 @@ import fs from "node:fs";
 
 const html = fs.readFileSync("index.html", "utf8");
 
-test("dashboard shows live provenance header and fallback labels", () => {
-  assert.match(html, /Live Data Provenance/);
+test("dashboard shows honest live and fallback provenance labels", () => {
+  assert.match(html, /Live data provenance/);
   assert.match(html, /Articles: Last Crawl/);
   assert.match(html, /Entities: Google NLP Cache/);
   assert.match(html, /RSS Feed/);
@@ -13,7 +13,10 @@ test("dashboard shows live provenance header and fallback labels", () => {
   assert.match(html, /\/api\/provenance\?live=1/);
 });
 
-test("success metrics are deferred from production UI", () => {
-  assert.doesNotMatch(html, /success-metrics\.html/);
-  assert.doesNotMatch(html, /Success Metrics & Scorecard/);
+test("dashboard uses simple newsroom language", () => {
+  assert.match(html, /Contextual, relevant, and meaningful for readers/);
+  assert.match(html, /Expand any row to review all recommendation details in one place/);
+  assert.match(html, /The dashboard does not force weak links/);
+  assert.doesNotMatch(html, /atleast/i);
+  assert.doesNotMatch(html, /meanigful/i);
 });

@@ -1,4 +1,4 @@
-# FE Semantic Interlinking — Fully Operational Build v3
+# FE Semantic Interlinking — Fully Operational Build v5.3
 
 This package preserves the approved Financial Express dashboard UI/UX and makes the data-source layer operational through code.
 
@@ -39,6 +39,7 @@ No dashboard row needs to be manually edited.
 - `GET /api/content?source=auto&limit=20` — latest FE content
 - `GET /api/content?url=ARTICLE_URL` — resolve one article through all fallbacks
 - `GET /api/nlp` — Google NLP configuration status
+- `GET /api/pair-entities?source_url=...&target_url=...` — on-demand Google entities for an opened recommendation
 - `POST /api/nlp` — analyze supplied text or an FE article URL
 - `GET /api/sources` — configured/cached source status
 - `GET /api/sources?live=1` — live WordPress REST and RSS probe
@@ -163,3 +164,8 @@ The approved dashboard UI is retained. The production header now reports the act
 Entities and sentiment are labelled separately as **Google NLP API**, **Google NLP Cache**, **Google NLP Stale Cache**, or **Last Crawl**. The Google NLP last-known status is persisted through the configured cache layer, and the dashboard never labels cached data as live.
 
 The stakeholder success-metrics page is intentionally deferred and is not included in this production release.
+
+
+## v5.2 live article list
+
+The dashboard requests `/api/live-recommendations?limit=60&candidates=500&min_suggestions=2&max_suggestions=3`. It checks up to 500 recent Financial Express WordPress posts and returns the latest 50–60 eligible source articles with two or three qualified internal linking suggestions each. A suggestion is excluded unless it contains a valid target URL, anchor text, placement guidance and a clear reason. The bundled processed crawl remains the safe fallback when the live WordPress request is unavailable.
